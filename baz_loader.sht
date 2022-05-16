@@ -118,8 +118,8 @@ __baz_loader() {
     for stage in "${__BAZ_STAGES[@]}"; do
         __baz_vecho
         __baz_vecho "Loading stage: $stage()"
+        eval "$stage"
         __baz_vecho
-        echo
     done
 }
 
