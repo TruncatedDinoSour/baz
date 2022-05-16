@@ -4,7 +4,7 @@
 
 # Credits
 
-- @DannyBen -- For creating an awesome tool for completion: https://github.com/DannyBen/completely
+- [@DannyBen](https://github.com/DannyBen) -- For creating an awesome tool for completion: https://github.com/DannyBen/completely
 
 # Dependencies
 

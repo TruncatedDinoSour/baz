@@ -116,9 +116,9 @@ __baz_loader() {
     __baz_vecho "Loading baz from data dir: #{BAZ_DATA_DIR_SMALL}"
 
     for stage in "${__BAZ_STAGES[@]}"; do
-        echo
+        __baz_vecho
         __baz_vecho "Loading stage: $stage()"
-        eval "$stage"
+        __baz_vecho
         echo
     done
 }

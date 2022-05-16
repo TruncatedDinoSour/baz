@@ -25,10 +25,10 @@ baz install git:
   - git+http://
 
 baz uninstall:
-  - $([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -not -path . -and -not -path "$HOME/.local/share/baz/plugins"  -maxdepth 1 -type d)
+  - $([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins"  -maxdepth 1 -not -path . -and -not -path "$HOME/.local/share/baz/plugins" -type d -exec basename {} \;)
 
 baz update:
-  - $([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -not -path . -and -not -path "$HOME/.local/share/baz/plugins"  -maxdepth 1 -type d)
+  - $([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -maxdepth 1 -not -path . -and -not -path "$HOME/.local/share/baz/plugins" -type d -exec basename {} \;)
 
 baz info:
   - exist
@@ -36,7 +36,7 @@ baz info:
   - git
 
 baz info exist:
-  - $([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -not -path . -and -not -path "$HOME/.local/share/baz/plugins"  -maxdepth 1 -type d)
+  - $([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -maxdepth 1 -not -path . -and -not -path "$HOME/.local/share/baz/plugins" -type d -exec basename {} \;)
 
 baz info local:
   - <directory>

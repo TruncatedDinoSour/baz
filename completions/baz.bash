@@ -12,12 +12,12 @@ _baz() {
     case "$comp_line" in
     'install local'*) COMPREPLY=($(compgen -A directory -- "$cur")) ;;
     'install git'*) COMPREPLY=($(compgen -W "git:// https:// git+https:// http:// git+http://" -- "$cur")) ;;
-    'info exist'*) COMPREPLY=($(compgen -W "$([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -not -path . -and -not -path "$HOME/.local/share/baz/plugins" -maxdepth 1 -type d)" -- "$cur")) ;;
+    'info exist'*) COMPREPLY=($(compgen -W "$([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -maxdepth 1 -not -path . -and -not -path "$HOME/.local/share/baz/plugins" -type d -exec basename {} \;)" -- "$cur")) ;;
     'info local'*) COMPREPLY=($(compgen -A directory -- "$cur")) ;;
-    'uninstall'*) COMPREPLY=($(compgen -W "$([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -not -path . -and -not -path "$HOME/.local/share/baz/plugins" -maxdepth 1 -type d)" -- "$cur")) ;;
+    'uninstall'*) COMPREPLY=($(compgen -W "$([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -maxdepth 1 -not -path . -and -not -path "$HOME/.local/share/baz/plugins" -type d -exec basename {} \;)" -- "$cur")) ;;
     'info git'*) COMPREPLY=($(compgen -W "git:// https:// git+https:// http:// git+http://" -- "$cur")) ;;
     'install'*) COMPREPLY=($(compgen -W "local git" -- "$cur")) ;;
-    'update'*) COMPREPLY=($(compgen -W "$([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -not -path . -and -not -path "$HOME/.local/share/baz/plugins" -maxdepth 1 -type d)" -- "$cur")) ;;
+    'update'*) COMPREPLY=($(compgen -W "$([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -maxdepth 1 -not -path . -and -not -path "$HOME/.local/share/baz/plugins" -type d -exec basename {} \;)" -- "$cur")) ;;
     'info'*) COMPREPLY=($(compgen -W "exist local git" -- "$cur")) ;;
     ''*) COMPREPLY=($(compgen -W "help setup unsetup install uninstall list update info upgrade version" -- "$cur")) ;;
     esac
