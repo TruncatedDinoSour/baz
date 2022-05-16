@@ -108,7 +108,10 @@ export __BAZ_STAGES=(
 )
 
 __baz_loader() {
-    [ -z "$(ls -A -- '#{BAZ_PLUG_DIR}' 2>/dev/null)" ] && __baz_vecho 'No plugin dir found' && return 1
+    if [ -z "$(ls -A -- '#{BAZ_PLUG_DIR}' 2>/dev/null)" ] || [ ! -d '#{BAZ_PLUG_DIR}' ]; then
+        __baz_vecho 'No plugin dir found'
+        return 1
+    fi
 
     __baz_vecho "Loading baz from data dir: #{BAZ_DATA_DIR_SMALL}"
 
