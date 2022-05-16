@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+echo "Hello, your name is ${1:-no name provided in first argument}"
+ls -A

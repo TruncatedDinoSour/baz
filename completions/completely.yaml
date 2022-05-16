@@ -1,0 +1,49 @@
+baz:
+  - help
+  - setup
+  - unsetup
+  - install
+  - uninstall
+  - list
+  - update
+  - info
+  - upgrade
+  - version
+
+baz install:
+  - local
+  - git
+
+baz install local:
+  - <directory>
+
+baz install git:
+  - git://
+  - https://
+  - git+https://
+  - http://
+  - git+http://
+
+baz uninstall:
+  - $([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -not -path . -and -not -path "$HOME/.local/share/baz/plugins"  -maxdepth 1 -type d)
+
+baz update:
+  - $([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -not -path . -and -not -path "$HOME/.local/share/baz/plugins"  -maxdepth 1 -type d)
+
+baz info:
+  - exist
+  - local
+  - git
+
+baz info exist:
+  - $([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -not -path . -and -not -path "$HOME/.local/share/baz/plugins"  -maxdepth 1 -type d)
+
+baz info local:
+  - <directory>
+
+baz info git:
+  - git://
+  - https://
+  - git+https://
+  - http://
+  - git+http://
