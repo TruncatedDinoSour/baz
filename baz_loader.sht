@@ -49,7 +49,10 @@ __baz_load_commands() {
             export PATH="$PATH:$_cmd_dir"
 
             for file in "$_cmd_dir"/*; do
-                [ ! -x "$file" ] && __baz_vecho "Making '$file' executable" && chmod a+rx -- "$file"
+                if [ ! -x "$file" ]; then
+                    __baz_vecho "Making '$file' executable"
+                    chmod a+rx -- "$file"
+                fi
             done
         fi
     done
