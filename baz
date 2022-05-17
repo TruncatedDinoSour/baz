@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.0.6'
+export BAZ_VERSION='1.0.7'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -392,10 +392,10 @@ baz_setup() {
         log "Done! Now just add this (if it already isn't there) to your ~/.bashrc :"
         eecho
 
-        _baz_loader="$(unexpand_path "$BAZ_LOADER" '$HOME')"
-
         echo '   export BAZ_LOADER_ENABLED=true'
-        echo "   [ -f \"$_baz_loader\" ] && source \"$_baz_loader\""
+        echo "   _baz_loader=\"$(unexpand_path "$BAZ_LOADER" '$HOME')\""
+        echo
+        echo '   [ -f "$_baz_loader" ] && source "$_baz_loader"'
     else
         log "Upgraded baz to v$BAZ_VERSION"
     fi
