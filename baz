@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.0.7'
+export BAZ_VERSION='1.0.8'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -63,16 +63,16 @@ yn() {
 
 baz_update_plugin_git() {
     . "$BAZP_INDEX"
-    BAZP_NO_LOG=1 bazp_check_env
+    BAZP_NO_LOG=true bazp_check_env
     old_ver="$BAZP_VER"
-    BAZP_NO_LOG=1 bazp_reset_env
+    BAZP_NO_LOG=true bazp_reset_env
 
     git pull --quiet --all
 
     . "$BAZP_INDEX"
-    BAZP_NO_LOG=1 bazp_check_env
+    BAZP_NO_LOG=true bazp_check_env
     new_ver="$BAZP_VER"
-    BAZP_NO_LOG=1 bazp_reset_env
+    BAZP_NO_LOG=true bazp_reset_env
 
     if [ "$new_ver" == "$old_ver" ]; then
         log "Plugin '$1' is up to date"
@@ -89,14 +89,14 @@ baz_update_plugin_local() {
     [ ! -f "$local_bazp" ] && error "No $BAZP_INDEX in $origin for plugin: $1"
 
     . "$local_bazp"
-    BAZP_NO_LOG=1 bazp_check_env
+    BAZP_NO_LOG=true bazp_check_env
     new_ver="$BAZP_VER"
-    BAZP_NO_LOG=1 bazp_reset_env
+    BAZP_NO_LOG=true bazp_reset_env
 
     . "$BAZP_INDEX"
-    BAZP_NO_LOG=1 bazp_check_env
+    BAZP_NO_LOG=true bazp_check_env
     old_ver="$BAZP_VER"
-    BAZP_NO_LOG=1 bazp_reset_env
+    BAZP_NO_LOG=true bazp_reset_env
 
     [ "$new_ver" == "$old_ver" ] && log "Plugin '$1' is up to date" && return
     log "Updating $1 from v$old_ver -> v$new_ver"
@@ -144,7 +144,7 @@ describe_env() {
     [ -f 'method' ] && log "Installed_with_method: $(head -n 1 method)"
     [ -f 'origin' ] && log "Plugin origin: $(head -n 1 origin)"
 
-    BAZP_NO_LOG=1 bazp_reset_env
+    BAZP_NO_LOG=true bazp_reset_env
     return 0
 }
 
