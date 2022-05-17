@@ -96,7 +96,7 @@ __baz_load_aliases() {
                 [ ! "$_alias_name" ] && continue
 
                 __baz_vecho "Loading alias '$_alias_name'"
-                eval "alias $_alias_name=\"source '$_baz_alias'\""
+                eval "alias $_alias_name=\"$(cat -- "$_baz_alias")\""
             done
         fi
     done
