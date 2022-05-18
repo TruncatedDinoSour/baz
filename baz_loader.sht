@@ -23,14 +23,15 @@ __baz_load_envs() {
         _envs_dir="$plugin/$BAZP_SRC/environments"
 
         if [ -d "$_envs_dir" ]; then
-            __baz_vecho "Loading environments from plugin: $(basename -- "$plugin")"
+            __baz_vecho "Loading environments from plugin: $BAZ_NAME"
 
             for _baz_env in "$_envs_dir"/*; do
+                [ ! -f "$_baz_env" ] && continue
                 _env_name="$(basename -- "$_baz_env" | __baz_sanitize)"
                 [ ! "$_env_name" ] && continue
 
                 __baz_vecho "Loading env variable '$_env_name'"
-                eval "export $_env_name='$(cat -- "$_baz_env")'"
+                export "$_env_name"="$(cat -- "$_baz_env")"
             done
         fi
     done
@@ -45,10 +46,12 @@ __baz_load_commands() {
         _cmd_dir="$plugin/$BAZP_SRC/commands"
 
         if [ -d "$_cmd_dir" ]; then
-            __baz_vecho "Loading commands from plugin: $(basename -- "$plugin")"
+            __baz_vecho "Loading commands from plugin: $BAZ_NAME"
             export PATH="$PATH:$_cmd_dir"
 
             for file in "$_cmd_dir"/*; do
+                [ ! -f "$file" ] && continue
+
                 if [ ! -x "$file" ]; then
                     __baz_vecho "Making '$file' executable"
                     chmod a+rx -- "$file"
@@ -67,9 +70,10 @@ __baz_load_functions() {
         _func_dir="$plugin/$BAZP_SRC/functions"
 
         if [ -d "$_func_dir" ]; then
-            __baz_vecho "Loading functions from plugin: $(basename -- "$plugin")"
+            __baz_vecho "Loading functions from plugin: $BAZ_NAME"
 
             for _baz_func in "$_func_dir"/*; do
+                [ ! -f "$_baz_func" ] && continue
                 _func_name="$(basename -- "$_baz_func" | __baz_sanitize)"
                 [ ! "$_func_name" ] && continue
 
@@ -89,14 +93,36 @@ __baz_load_aliases() {
         _alias_dir="$plugin/$BAZP_SRC/aliases"
 
         if [ -d "$_alias_dir" ]; then
-            __baz_vecho "Loading aliases from plugin: $(basename -- "$plugin")"
+            __baz_vecho "Loading aliases from plugin: $BAZ_NAME"
 
             for _baz_alias in "$_alias_dir"/*; do
+                [ ! -f "$_baz_alias" ] && continue
                 _alias_name="$(basename -- "$_baz_alias" | __baz_sanitize)"
                 [ ! "$_alias_name" ] && continue
 
                 __baz_vecho "Loading alias '$_alias_name'"
-                eval "alias $_alias_name=\"$(cat -- "$_baz_alias")\""
+
+                # shellcheck disable=SC2139
+                alias "$_alias_name"="$(cat -- "$_baz_alias")"
+            done
+        fi
+    done
+}
+
+__baz_load_runners() {
+    __baz_vecho 'Loading baz runners'
+
+    for plugin in '#{BAZ_PLUG_DIR}'/*; do
+        . "$plugin/baz.env"
+        _runners_dir="$plugin/$BAZP_SRC/runners"
+
+        if [ -d "$_runners_dir" ]; then
+            __baz_vecho "Loading runners from plugin: $BAZ_NAME"
+
+            for _baz_runner in "$_runners_dir"/*; do
+                [ ! -f "$_baz_runner" ] && continue
+                __baz_vecho "Starting runner: $([ "$BAZ_DEBUG_LOAD" ] && basename -- "$_baz_runner")"
+                source "$_baz_runner"
             done
         fi
     done
@@ -108,6 +134,7 @@ export __BAZ_STAGES=(
     __baz_load_functions
     __baz_load_aliases
     __baz_reset_env
+    __baz_load_runners
 )
 
 __baz_loader() {

@@ -113,3 +113,22 @@ function <function_name>() {
     <your code>
 }
 ```
+
+### plugin/runners
+
+This directory includes files that will be sourced/ran
+on load:
+
+```
+runners/
+    | <runner name>
+    | <runner name>
+    | <runner name>
+    | <runner name>
+```
+
+It gets expanded like this:
+
+```bash
+source <runner name>
+```

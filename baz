@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.1.1'
+export BAZ_VERSION='1.2.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -458,7 +458,11 @@ baz_uinstall() {
     log 'Will uninstall:'
 
     for plugin in "$@"; do
-        [ ! -d "$BAZ_PLUGDIR/$plugin" ] && error "Plugin '$plugin' not installed" | indent
+        if [ ! -d "$BAZ_PLUGDIR/$plugin" ]; then
+            error "Plugin '$plugin' not installed" | indent
+            return 1
+        fi
+
         log "$plugin" | indent
     done
     eecho
