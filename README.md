@@ -93,3 +93,9 @@ $ ./scripts/comp.sh
 
 - [Examples folder](/examples)
 - [My example plugin repo](https://github.com/TruncatedDinosour/baz-example-plugin)
+
+# Debugging
+
+- Set `BAZ_DEBUG` to any value to any value to debug the `baz` cli with tracing
+- Set `BAZ_DEBUG_LOAD` to any value to debug the loader
+- Add `set -x` before and `set +x` after the loader to enable tracing

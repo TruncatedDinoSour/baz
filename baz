@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.0.8'
+export BAZ_VERSION='1.1.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -115,16 +115,15 @@ baz_update_plugin() {
     bplug="$(basename -- "$1")"
 
     log "Updating plugin: $bplug"
-
     cd -- "$1"
 
     method="$(head -n 1 method)"
 
-    case "$method" in
-    git) baz_update_plugin_git "$bplug" ;;
-    local) baz_update_plugin_local "$bplug" ;;
-    *) error "Unknown method to update '$bplug': $method" ;;
-    esac
+    fn="baz_update_plugin_$method"
+    command -v -- "$fn" >/dev/null ||
+        error "Unknown method to update '$bplug': $method"
+
+    $fn "$bplug"
 
     cd -- "$BAZP_INITDIR"
     log "Updated plugin: $bplug"
@@ -213,6 +212,12 @@ export BLACKLIST_BAZP_NAME=(.*-unstable$ .*-dangerous$)
 
 # will blacklist all plugins that end with either -unstable or -dangerous'
 # blocking property/variable $BAZP_NAME
+
+# BAZ_NORLWRAP: Disable the use of rlwrap
+# Won't use rlwrap even if available
+# false: use
+# true: don't use
+export BAZ_NORLWRAP=false
 EOF
 }
 
@@ -334,7 +339,7 @@ baz_help() {
         entry 'setup' 'Setup baz plugin manager'
         entry 'unsetup' 'Unsetup (remove) baz plugin manager'
 
-        entry 'install [method] [atom]' 'Install a plugin'
+        entry 'install [method] [atoms]' 'Install plugins'
         {
             entry 'local' 'Local plugin from a directory'
             log 'Atom type: path to plugin, e.g. /tmp/myplug' | indent
@@ -346,7 +351,7 @@ baz_help() {
         entry 'uninstall [plugins]' 'Uninstall plugins'
         entry 'list' 'List all installed plugins'
         entry 'update <plugins>' 'Update all installed or specified plugins'
-        entry 'info [exist|local|git] [atom]' 'Describe (get info) about a plugin'
+        entry 'info [exist|local|git] [atoms]' 'Describe (get info) about plugins'
         {
             entry 'exist' 'Describe existing (installed) plugin'
             log 'Atom type: plugin name, e.g. myplug' | indent
@@ -363,13 +368,30 @@ baz_help() {
 }
 
 baz_setup() {
-    log "Setting up baz v$BAZ_VERSION"
+    if [ "$_baz_upgrade" ]; then
+        _baz_new_ver=$(BAZ_NORLWRAP=true ./baz version)
 
-    log "Making baz data directory: $(unexpand_path "$BAZ_DIR")... " printf
-    mkdir -p -- "$BAZ_DIR"
-    eecho 'done'
+        if [ "$_baz_new_ver" = "v$BAZ_VERSION" ]; then
+            log "Version v$BAZ_VERSION is up to date with $_baz_new_ver"
+            return
+        fi
 
-    if [ ! "$_baz_upgrade" ]; then
+        log "Upgrading baz v$BAZ_VERSION"
+
+        log "Pulling repo... " printf
+        git pull -q 2>/dev/null || error 'Failed to pull from repo'
+        eecho 'done'
+    else
+        log "Setting up baz v$BAZ_VERSION"
+    fi
+
+    if [ ! -d "$BAZ_DIR" ]; then
+        log "Making baz data directory: $(unexpand_path "$BAZ_DIR")... " printf
+        mkdir -p -- "$BAZ_DIR"
+        eecho 'done'
+    fi
+
+    if [ ! -d "$BAZ_CONFDIR" ]; then
         log "Making baz config directory: $(unexpand_path "$BAZ_CONFDIR")... " printf
         mkdir -p -- "$BAZ_CONFDIR"
         eecho 'done'
@@ -388,7 +410,9 @@ baz_setup() {
     eecho 'done'
 
     eecho
-    if [ ! "$_baz_upgrade" ]; then
+    if [ "$_baz_upgrade" ]; then
+        log "Upgraded baz from v$BAZ_VERSION -> $_baz_new_ver"
+    else
         log "Done! Now just add this (if it already isn't there) to your ~/.bashrc :"
         eecho
 
@@ -396,8 +420,6 @@ baz_setup() {
         echo "   _baz_loader=\"$(unexpand_path "$BAZ_LOADER" '$HOME')\""
         echo
         echo '   [ -f "$_baz_loader" ] && source "$_baz_loader"'
-    else
-        log "Upgraded baz to v$BAZ_VERSION"
     fi
 }
 
@@ -488,31 +510,34 @@ baz_info() {
     [ ! "$1" ] && error 'no plugin type specified'
     [ ! "$2" ] && error 'no atom specified'
 
-    case "$1" in
-    exist) describe_exist "$2" ;;
-    local) describe_local "$2" ;;
-    git) describe_git "$2" ;;
-    *) error "Plugin type '$1' is not known" ;;
-    esac
+    fn="describe_$1"
+    command -v -- "$fn" >/dev/null ||
+        error "Plugin type '$1' is not known"
+
+    for plugin in "${@:2}"; do
+        $fn "$plugin"
+        echo
+    done
 }
 
 baz_upgrade() {
     log 'Upgrading baz'
     yn 'Do you want to overwrite your config?' && export BAZ_NEWCONF=true
+
     _baz_upgrade=true baz_setup
 }
 
 main() {
     use printf return
 
-    if [ ! "$_BAZ_NORLWRAP" ] && command -v rlwrap >/dev/null; then
+    if [ "$BAZ_NORLWRAP" != true ] && command -v rlwrap >/dev/null; then
         use mktemp trap rlwrap return
 
         _rlhist="$(mktemp 'baz.XXXXXXXXXXXXXXXXXXXXXXXX')"
-        trap 'rm -- "$_rlhist"' 0 1 15
+        trap 'rm -f -- "$_rlhist"' 0 1 15
 
-        _BAZ_NORLWRAP=true rlwrap -g '.*' -H "$_rlhist" -- "$0" "$@"
-        return
+        BAZ_NORLWRAP=true rlwrap -g '.*' -H "$_rlhist" -- "$0" "$@"
+        exit $?
     fi
 
     set -e
@@ -536,7 +561,7 @@ main() {
     uninstall) baz_uinstall "${@:2}" ;;
     list) baz_list ;;
     update) baz_update "${@:2}" ;;
-    info) baz_info "$2" "$3" ;;
+    info) baz_info "$2" "${@:3}" ;;
     upgrade) baz_upgrade ;;
     version) echo "v$BAZ_VERSION" ;;
     *)
@@ -545,8 +570,6 @@ main() {
         exit 1
         ;;
     esac
-
-    return 0
 }
 
 [ "$BAZ_HEADER" ] || main "$@"

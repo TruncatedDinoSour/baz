@@ -105,8 +105,8 @@ __baz_load_aliases() {
 export __BAZ_STAGES=(
     __baz_load_envs
     __baz_load_commands
-    __baz_load_aliases
     __baz_load_functions
+    __baz_load_aliases
     __baz_reset_env
 )
 
