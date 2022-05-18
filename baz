@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.1.0'
+export BAZ_VERSION='1.1.1'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -225,7 +225,6 @@ baz_loader_q() { echo "s|#{$1}|$2|g"; }
 
 baz_loader() {
     sed \
-        -e "$(baz_loader_q 'BAZ_DATA_DIR_SMALL' "$(unexpand_path "$BAZ_DIR")")" \
         -e "$(baz_loader_q 'BAZ_DATA_DIR' "$BAZ_DIR")" \
         -e "$(baz_loader_q 'BAZ_PLUG_DIR' "$BAZ_PLUGDIR")" \
         baz_loader.sht

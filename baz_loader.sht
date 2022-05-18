@@ -116,7 +116,7 @@ __baz_loader() {
         return 1
     fi
 
-    __baz_vecho "Loading baz from data dir: #{BAZ_DATA_DIR_SMALL}"
+    __baz_vecho "Loading baz from data dir: #{BAZ_DATA_DIR}"
 
     for stage in "${__BAZ_STAGES[@]}"; do
         __baz_vecho
