@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.3.0'
+export BAZ_VERSION='1.3.1'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -320,7 +320,6 @@ bazp_install_git() {
     use git local
 
     _plugdir="/tmp/$(get_base "$1")"
-    trap 'rm -rf -- "$_plugdir"' 0 1 15
 
     log "Cloning repository: $1... " printf
     baz_git_clone "$1" "$_plugdir"
@@ -331,6 +330,7 @@ bazp_install_git() {
 
     echo 'git' >"$BAZ_PLUGDIR/$BAZP_NAME/method"
     bazp_reset_env
+    rm -rf -- "$_plugdir"
 }
 
 bazp_install_dirs() {
