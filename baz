@@ -453,7 +453,7 @@ baz_setup() {
         echo '   export BAZ_LOADER_ENABLED=true'
         echo "   _baz_loader=\"$(unexpand_path "$BAZ_LOADER" '$HOME')\""
         echo
-        echo '   [ -f "$_baz_loader" ] && source "$_baz_loader"'
+        echo '   [ ! -f "$_baz_loader" ] || source "$_baz_loader"'
     fi
 }
 
