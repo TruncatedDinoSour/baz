@@ -24,7 +24,7 @@ __baz_load_envs() {
         _envs_dir="$plugin/$BAZP_SRC/environments"
 
         if [ -d "$_envs_dir" ]; then
-            __baz_vecho "Loading environments from plugin: $BAZ_NAME"
+            __baz_vecho "Loading environments from plugin: $BAZP_NAME"
 
             for _baz_env in "$_envs_dir"/*; do
                 [ ! -f "$_baz_env" ] && continue
@@ -47,7 +47,7 @@ __baz_load_commands() {
         _cmd_dir="$plugin/$BAZP_SRC/commands"
 
         if [ -d "$_cmd_dir" ]; then
-            __baz_vecho "Loading commands from plugin: $BAZ_NAME"
+            __baz_vecho "Loading commands from plugin: $BAZP_NAME"
             export PATH="$PATH:$_cmd_dir"
 
             for file in "$_cmd_dir"/*; do
@@ -71,7 +71,7 @@ __baz_load_functions() {
         _func_dir="$plugin/$BAZP_SRC/functions"
 
         if [ -d "$_func_dir" ]; then
-            __baz_vecho "Loading functions from plugin: $BAZ_NAME"
+            __baz_vecho "Loading functions from plugin: $BAZP_NAME"
 
             for _baz_func in "$_func_dir"/*; do
                 [ ! -f "$_baz_func" ] && continue
@@ -94,7 +94,7 @@ __baz_load_aliases() {
         _alias_dir="$plugin/$BAZP_SRC/aliases"
 
         if [ -d "$_alias_dir" ]; then
-            __baz_vecho "Loading aliases from plugin: $BAZ_NAME"
+            __baz_vecho "Loading aliases from plugin: $BAZP_NAME"
 
             for _baz_alias in "$_alias_dir"/*; do
                 [ ! -f "$_baz_alias" ] && continue
@@ -118,7 +118,7 @@ __baz_load_runners() {
         _runners_dir="$plugin/$BAZP_SRC/runners"
 
         if [ -d "$_runners_dir" ]; then
-            __baz_vecho "Loading runners from plugin: $BAZ_NAME"
+            __baz_vecho "Loading runners from plugin: $BAZP_NAME"
 
             for _baz_runner in "$_runners_dir"/*; do
                 [ ! -f "$_baz_runner" ] && continue
