@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-__baz_vecho() { [ "$BAZ_DEBUG_LOAD" ] && echo "[BAZ_LOAD] $1" >&2; }
+__baz_vecho() { [ ! "$BAZ_DEBUG_LOAD" ] || echo "[BAZ_LOAD] $1" >&2; }
 __baz_get_base() { echo "${1##*/}"; }
 alias __baz_sanitize="sed 's/\W//g'"
 
@@ -149,9 +149,9 @@ __baz_loader() {
     for stage in "${__BAZ_STAGES[@]}"; do
         __baz_vecho
         __baz_vecho "Loading stage: $stage()"
-        eval "$stage"
+        "$stage"
         __baz_vecho
     done
 }
 
-[ ! "$BAZ_LOADER_ENABLED" ] || __baz_loader
+[ "$BAZ_LOADER_ENABLED" ] && __baz_loader
