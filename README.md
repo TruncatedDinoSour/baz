@@ -15,6 +15,22 @@
 - Rlwrap (optional, but it's nice for special keys)
 - Bash-completion (optional, but it's nice for well.. Completion)
 
+# Automatic setup
+
+This script hosted on my files site will set up
+baz automatically, but it might be unstable
+
+```bash
+$ rm -rf -- baz_setup.sh
+$ wget 'https://files.ari-web.xyz/files/baz_setup.sh'
+$ bash baz_setup.sh
+```
+
+Configuration:
+
+- `__BASH_RUNAS`: The `sudo` program (sudo)
+- `PREFIX`: Where to install baz (/usr/bin)
+
 # Plugin indexing
 
 You can leave a link to it in the [PLUGINS.md](/PLUGINS.md) file :)
