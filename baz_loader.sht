@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 __baz_vecho() { [ "$BAZ_DEBUG_LOAD" ] && echo "[BAZ_LOAD] $1" >&2; }
+__baz_get_base() { echo "${1##*/}"; }
 alias __baz_sanitize="sed 's/\W//g'"
 
 __baz_reset_env() {
@@ -27,7 +28,7 @@ __baz_load_envs() {
 
             for _baz_env in "$_envs_dir"/*; do
                 [ ! -f "$_baz_env" ] && continue
-                _env_name="$(basename -- "$_baz_env" | __baz_sanitize)"
+                _env_name="$(__baz_get_base "$_baz_env" | __baz_sanitize)"
                 [ ! "$_env_name" ] && continue
 
                 __baz_vecho "Loading env variable '$_env_name'"
@@ -74,7 +75,7 @@ __baz_load_functions() {
 
             for _baz_func in "$_func_dir"/*; do
                 [ ! -f "$_baz_func" ] && continue
-                _func_name="$(basename -- "$_baz_func" | __baz_sanitize)"
+                _func_name="$(__baz_get_base "$_baz_func" | __baz_sanitize)"
                 [ ! "$_func_name" ] && continue
 
                 __baz_vecho "Loading function '$_func_name'"
@@ -97,7 +98,7 @@ __baz_load_aliases() {
 
             for _baz_alias in "$_alias_dir"/*; do
                 [ ! -f "$_baz_alias" ] && continue
-                _alias_name="$(basename -- "$_baz_alias" | __baz_sanitize)"
+                _alias_name="$(__baz_get_base "$_baz_alias" | __baz_sanitize)"
                 [ ! "$_alias_name" ] && continue
 
                 __baz_vecho "Loading alias '$_alias_name'"
@@ -121,7 +122,7 @@ __baz_load_runners() {
 
             for _baz_runner in "$_runners_dir"/*; do
                 [ ! -f "$_baz_runner" ] && continue
-                __baz_vecho "Starting runner: $([ "$BAZ_DEBUG_LOAD" ] && basename -- "$_baz_runner")"
+                __baz_vecho "Starting runner: $([ "$BAZ_DEBUG_LOAD" ] && __baz_get_base "$_baz_runner")"
                 source "$_baz_runner"
             done
         fi
@@ -143,7 +144,7 @@ __baz_loader() {
         return 1
     fi
 
-    __baz_vecho "Loading baz from data dir: #{BAZ_DATA_DIR}"
+    __baz_vecho "Loading baz from data dir: #{BAZ_DATA_DIR_SHORT}"
 
     for stage in "${__BAZ_STAGES[@]}"; do
         __baz_vecho
@@ -153,4 +154,4 @@ __baz_loader() {
     done
 }
 
-[ "$BAZ_LOADER_ENABLED" ] && __baz_loader
+[ ! "$BAZ_LOADER_ENABLED" ] || __baz_loader
