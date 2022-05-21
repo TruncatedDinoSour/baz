@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
-__baz_vecho() { [ ! "$BAZ_DEBUG_LOAD" ] || echo "[BAZ_LOAD] $1" >&2; }
+if [ "$BAZ_DEBUG_LOAD" ]; then
+    __baz_vecho() { echo "[BAZ_LOAD] $1" >&2; }
+else
+    __baz_vecho() { :; }
+fi
+
 __baz_get_base() { echo "${1##*/}"; }
 alias __baz_sanitize="sed 's/\W//g'"
 
@@ -122,7 +127,7 @@ __baz_load_runners() {
 
             for _baz_runner in "$_runners_dir"/*; do
                 [ ! -f "$_baz_runner" ] && continue
-                __baz_vecho "Starting runner: $([ "$BAZ_DEBUG_LOAD" ] && __baz_get_base "$_baz_runner")"
+                __baz_vecho "Starting runner: $(__baz_get_base "$_baz_runner")"
                 source "$_baz_runner"
             done
         fi
