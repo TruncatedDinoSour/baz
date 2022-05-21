@@ -7,6 +7,7 @@ export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
 export BAZ_PRE="$BAZ_CONFDIR/preload.env"
+export BAZ_LOADER_TEMPLATE="$BAZ_DIR/loader.sht"
 export BAZ_LOADER="$BAZ_DIR/loader.sh"
 export BAZ_PLUGDIR="$BAZ_DIR/plugins"
 
@@ -247,7 +248,7 @@ baz_loader() {
         -e "$(baz_loader_q 'BAZ_DATA_DIR_SHORT' "$BAZ_DIR")" \
         -e "$(baz_loader_q 'BAZ_DATA_DIR' "$BAZ_DIR")" \
         -e "$(baz_loader_q 'BAZ_PLUG_DIR' "$BAZ_PLUGDIR")" \
-        baz_loader.sht
+        "$BAZ_LOADER_TEMPLATE"
 }
 
 # Installer helpers
@@ -357,7 +358,7 @@ baz_help() {
         entry 'help' 'Print help'
 
         entry 'setup' 'Setup baz plugin manager'
-        log 'Make sure you have baz_loader.sht file in CWD' | indent
+        log "Make sure you have $BAZ_LOADER_TEMPLATE file in CWD" | indent
 
         entry 'unsetup' 'Unsetup (remove) baz plugin manager'
 
