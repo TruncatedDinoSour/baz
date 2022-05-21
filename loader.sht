@@ -129,6 +129,27 @@ __baz_load_runners() {
     done
 }
 
+__baz_load_completions() {
+    __baz_vecho 'Loading baz completions'
+
+    for plugin in '#{BAZ_PLUG_DIR}'/*; do
+        . "$plugin/baz.env"
+        _completions_dir="$plugin/$BAZP_SRC/completions"
+
+        if [ -d "$_completions_dir" ]; then
+            __baz_vecho "Loading completions from plugin: $BAZP_NAME"
+
+            for _baz_completion in "$_completions_dir"/*; do
+                [ ! -f "$_baz_completion" ] && continue
+                __baz_vecho "Adding completion: $([ "$BAZ_DEBUG_LOAD" ] && __baz_get_base "$_baz_runner")"
+
+                complete -F "$(head -n 1 "$_baz_completion")" \
+                    -o bashdefault -o default "$(__baz_get_base "$_baz_completion")"
+            done
+        fi
+    done
+}
+
 export __BAZ_STAGES=(
     __baz_load_envs
     __baz_load_commands
@@ -136,6 +157,7 @@ export __BAZ_STAGES=(
     __baz_load_aliases
     __baz_reset_env
     __baz_load_runners
+    __baz_load_completions
 )
 
 __baz_loader() {
@@ -144,7 +166,7 @@ __baz_loader() {
         return 1
     fi
 
-    __baz_vecho "Loading baz from data dir: #{BAZ_DATA_DIR_SHORT}"
+    __baz_vecho 'Loading baz from data dir: #{BAZ_DATA_DIR_SHORT}'
 
     for stage in "${__BAZ_STAGES[@]}"; do
         __baz_vecho

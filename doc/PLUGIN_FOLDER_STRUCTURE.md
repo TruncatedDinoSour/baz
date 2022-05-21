@@ -69,6 +69,89 @@ commands/
 
 And it has the same naming rules as aliases
 
+### plugin/completions
+
+This directory should include all completions
+and what functions to use for them as the file's
+content, the folder structure should look like
+this:
+
+```
+completions/
+    | <command name>
+    | <command name>
+    | <command name>
+    | <command name>
+```
+
+In files `<command name>` should be a function name
+(should be defined in `functions/` directory) and nothing
+else, it will be called as the completions function.
+
+For example:
+
+```
+completions/
+    | arch
+```
+
+##### completions/arch
+
+```bash
+__arch_comp
+```
+
+##### functions/\_\_arch_comp
+
+```bash
+# mailman arch completion                                  -*- shell-script -*-
+
+# Try to detect whether this is the mailman "arch" to avoid installing
+# it for the coreutils/util-linux-ng one.
+_have mailmanctl &&
+    _arch() {
+        local cur prev words cword split
+        _init_completion -s || return
+
+        case $prev in
+        -w | -g | -d | --welcome-msg | --goodbye-msg | --digest)
+            COMPREPLY=($(compgen -W 'y n' -- "$cur"))
+            return
+            ;;
+        --file)
+            _filedir
+            return
+            ;;
+        esac
+
+        $split && return
+
+        if [[ $cur == -* ]]; then
+            COMPREPLY=($(compgen -W '$(_parse_help "$1")' -- "$cur"))
+        else
+            local args=$cword
+            for ((i = 1; i < cword; i++)); do
+                if [[ ${words[i]} == -* ]]; then
+                    ((args--))
+                fi
+            done
+            case $args in
+            1)
+                _xfunc list_lists _mailman_lists
+                ;;
+            2)
+                _filedir
+                ;;
+            esac
+        fi
+
+    } && complete -F _arch arch
+
+# ex: filetype=sh
+```
+
+This will generate completions for `arch` command
+
 ### plugin/environments
 
 This directory includes environment variable
