@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.4.0'
+export BAZ_VERSION='1.4.1'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -84,11 +84,7 @@ baz_update_plugin_git() {
 
     BAZP_NO_LOG=false
 
-    if [ "$new_ver" == "$old_ver" ]; then
-        log "Plugin '$1' is up to date"
-    else
-        log "Updated '$1' from v$old_ver -> v$new_ver"
-    fi
+    [ "$new_ver" != "$old_ver" ] && log "Updated '$1' from v$old_ver -> v$new_ver"
 }
 
 baz_update_plugin_local() {
@@ -112,8 +108,8 @@ baz_update_plugin_local() {
 
     BAZP_NO_LOG=false
 
-    [ "$new_ver" == "$old_ver" ] && log "Plugin '$1' is up to date" && return
-    log "Updating $1 from v$old_ver -> v$new_ver"
+    [ "$new_ver" == "$old_ver" ] && return
+    log "Updating '$1' from v$old_ver -> v$new_ver"
 
     # I am in pain how stupid this expression is
     # Btw can't use -exec or find breaks
@@ -127,10 +123,6 @@ baz_update_plugin_local() {
 
 baz_update_plugin() {
     bplug="$(get_base "$1")"
-
-    log "Updating plugin: $bplug" |
-        indent | indent
-
     cd -- "$1"
 
     method="$(head -n 1 method)"
@@ -142,8 +134,6 @@ baz_update_plugin() {
     $fn "$bplug"
 
     cd -- "$BAZP_INITDIR"
-
-    log "Updated plugin: $bplug" | indent
 }
 
 describe_env() {
