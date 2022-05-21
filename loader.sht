@@ -9,150 +9,116 @@ fi
 __baz_get_base() { echo "${1##*/}"; }
 alias __baz_sanitize="sed 's/\W//g'"
 
-__baz_reset_env() {
-    __baz_vecho 'Resetting environment'
-
-    env -0 | while IFS='=' read -r -d '' name value; do
-        if [[ $name == BAZP_* ]]; then
-            __baz_vecho "Unsetting: $name ($value)"
-            unset "$name"
-        fi
-    done
-}
-
 __baz_load_envs() {
-    __baz_vecho 'Loading baz environments'
+    _envs_dir="$plugin/$BAZP_SRC/environments"
 
-    for plugin in '#{BAZ_PLUG_DIR}'/*; do
-        . "$plugin/baz.env"
+    if [ -d "$_envs_dir" ]; then
+        for _baz_env in "$_envs_dir"/*; do
+            [ ! -f "$_baz_env" ] && continue
+            _env_name="$(__baz_get_base "$_baz_env" | __baz_sanitize)"
+            [ ! "$_env_name" ] && continue
 
-        _envs_dir="$plugin/$BAZP_SRC/environments"
-
-        if [ -d "$_envs_dir" ]; then
-            __baz_vecho "Loading environments from plugin: $BAZP_NAME"
-
-            for _baz_env in "$_envs_dir"/*; do
-                [ ! -f "$_baz_env" ] && continue
-                _env_name="$(__baz_get_base "$_baz_env" | __baz_sanitize)"
-                [ ! "$_env_name" ] && continue
-
-                __baz_vecho "Loading env variable '$_env_name'"
-                export "$_env_name"="$(cat -- "$_baz_env")"
-            done
-        fi
-    done
+            __baz_vecho "Loading env variable '$_env_name'"
+            export "$_env_name"="$(cat -- "$_baz_env")"
+        done
+    fi
 }
 
 __baz_load_commands() {
-    __baz_vecho 'Loading baz commands'
+    _cmd_dir="$plugin/$BAZP_SRC/commands"
 
-    for plugin in '#{BAZ_PLUG_DIR}'/*; do
-        . "$plugin/baz.env"
+    if [ -d "$_cmd_dir" ]; then
+        export PATH="$PATH:$_cmd_dir"
 
-        _cmd_dir="$plugin/$BAZP_SRC/commands"
+        for file in "$_cmd_dir"/*; do
+            [ ! -f "$file" ] && continue
 
-        if [ -d "$_cmd_dir" ]; then
-            __baz_vecho "Loading commands from plugin: $BAZP_NAME"
-            export PATH="$PATH:$_cmd_dir"
-
-            for file in "$_cmd_dir"/*; do
-                [ ! -f "$file" ] && continue
-
-                if [ ! -x "$file" ]; then
-                    __baz_vecho "Making '$file' executable"
-                    chmod a+rx -- "$file"
-                fi
-            done
-        fi
-    done
+            if [ ! -x "$file" ]; then
+                __baz_vecho "Making '$file' executable"
+                chmod a+rx -- "$file"
+            fi
+        done
+    fi
 }
 
 __baz_load_functions() {
-    __baz_vecho 'Loading baz functions'
+    _func_dir="$plugin/$BAZP_SRC/functions"
 
-    for plugin in '#{BAZ_PLUG_DIR}'/*; do
-        . "$plugin/baz.env"
+    if [ -d "$_func_dir" ]; then
+        for _baz_func in "$_func_dir"/*; do
+            [ ! -f "$_baz_func" ] && continue
+            _func_name="$(__baz_get_base "$_baz_func" | __baz_sanitize)"
+            [ ! "$_func_name" ] && continue
 
-        _func_dir="$plugin/$BAZP_SRC/functions"
-
-        if [ -d "$_func_dir" ]; then
-            __baz_vecho "Loading functions from plugin: $BAZP_NAME"
-
-            for _baz_func in "$_func_dir"/*; do
-                [ ! -f "$_baz_func" ] && continue
-                _func_name="$(__baz_get_base "$_baz_func" | __baz_sanitize)"
-                [ ! "$_func_name" ] && continue
-
-                __baz_vecho "Loading function '$_func_name'"
-                eval "function $_func_name() { source '$_baz_func'; }"
-            done
-        fi
-    done
+            __baz_vecho "Loading function '$_func_name'"
+            eval "function $_func_name() { source '$_baz_func'; }"
+        done
+    fi
 }
 
 __baz_load_aliases() {
-    __baz_vecho 'Loading baz aliases'
+    _alias_dir="$plugin/$BAZP_SRC/aliases"
 
-    for plugin in '#{BAZ_PLUG_DIR}'/*; do
-        . "$plugin/baz.env"
+    if [ -d "$_alias_dir" ]; then
+        for _baz_alias in "$_alias_dir"/*; do
+            [ ! -f "$_baz_alias" ] && continue
+            _alias_name="$(__baz_get_base "$_baz_alias" | __baz_sanitize)"
+            [ ! "$_alias_name" ] && continue
 
-        _alias_dir="$plugin/$BAZP_SRC/aliases"
+            __baz_vecho "Loading alias '$_alias_name'"
 
-        if [ -d "$_alias_dir" ]; then
-            __baz_vecho "Loading aliases from plugin: $BAZP_NAME"
-
-            for _baz_alias in "$_alias_dir"/*; do
-                [ ! -f "$_baz_alias" ] && continue
-                _alias_name="$(__baz_get_base "$_baz_alias" | __baz_sanitize)"
-                [ ! "$_alias_name" ] && continue
-
-                __baz_vecho "Loading alias '$_alias_name'"
-
-                # shellcheck disable=SC2139
-                alias "$_alias_name"="$(cat -- "$_baz_alias")"
-            done
-        fi
-    done
+            # shellcheck disable=SC2139
+            alias "$_alias_name"="$(cat -- "$_baz_alias")"
+        done
+    fi
 }
 
 __baz_load_runners() {
-    __baz_vecho 'Loading baz runners'
+    _runners_dir="$plugin/$BAZP_SRC/runners"
 
-    for plugin in '#{BAZ_PLUG_DIR}'/*; do
-        . "$plugin/baz.env"
-        _runners_dir="$plugin/$BAZP_SRC/runners"
-
-        if [ -d "$_runners_dir" ]; then
-            __baz_vecho "Loading runners from plugin: $BAZP_NAME"
-
-            for _baz_runner in "$_runners_dir"/*; do
-                [ ! -f "$_baz_runner" ] && continue
-                __baz_vecho "Starting runner: $(__baz_get_base "$_baz_runner")"
-                source "$_baz_runner"
-            done
-        fi
-    done
+    if [ -d "$_runners_dir" ]; then
+        for _baz_runner in "$_runners_dir"/*; do
+            [ ! -f "$_baz_runner" ] && continue
+            __baz_vecho "Starting runner: $(__baz_get_base "$_baz_runner")"
+            source "$_baz_runner"
+        done
+    fi
 }
 
 __baz_load_completions() {
-    __baz_vecho 'Loading baz completions'
+    _completions_dir="$plugin/$BAZP_SRC/completions"
 
-    for plugin in '#{BAZ_PLUG_DIR}'/*; do
-        . "$plugin/baz.env"
-        _completions_dir="$plugin/$BAZP_SRC/completions"
+    if [ -d "$_completions_dir" ]; then
+        for _baz_completion in "$_completions_dir"/*; do
+            [ ! -f "$_baz_completion" ] && continue
+            __baz_vecho "Adding completion: $([ "$BAZ_DEBUG_LOAD" ] && __baz_get_base "$_baz_runner")"
 
-        if [ -d "$_completions_dir" ]; then
-            __baz_vecho "Loading completions from plugin: $BAZP_NAME"
+            complete -F "$(head -n 1 "$_baz_completion")" \
+                -o bashdefault -o default "$(__baz_get_base "$_baz_completion")"
+        done
+    fi
+}
 
-            for _baz_completion in "$_completions_dir"/*; do
-                [ ! -f "$_baz_completion" ] && continue
-                __baz_vecho "Adding completion: $([ "$BAZ_DEBUG_LOAD" ] && __baz_get_base "$_baz_runner")"
+__baz_load_keybinds() {
+    _keybinds_dir="$plugin/$BAZP_SRC/keybinds"
+    _all_keybinds="$_keybinds_dir/all.rl"
+    _bindings_dir="$_keybinds_dir/bindings"
 
-                complete -F "$(head -n 1 "$_baz_completion")" \
-                    -o bashdefault -o default "$(__baz_get_base "$_baz_completion")"
-            done
-        fi
-    done
+    if [ -f "$_all_keybinds" ]; then
+        __baz_vecho "Loading full-context keybinds"
+        bind -f "$_all_keybinds"
+    fi
+
+    if [ -d "$_bindings_dir" ]; then
+        __baz_vecho "Loading contexed keybinds"
+
+        for _baz_bind in "$_bindings_dir"/*; do
+            _baz_bind_ctx="$(__baz_get_base "$_baz_bind")"
+
+            __baz_vecho "Loading keybinds for context: $_baz_bind_ctx"
+            bind -m "$_baz_bind_ctx" -f "$_baz_bind"
+        done
+    fi
 }
 
 export __BAZ_STAGES=(
@@ -160,9 +126,9 @@ export __BAZ_STAGES=(
     __baz_load_commands
     __baz_load_functions
     __baz_load_aliases
-    __baz_reset_env
     __baz_load_runners
     __baz_load_completions
+    __baz_load_keybinds
 )
 
 __baz_loader() {
@@ -173,10 +139,16 @@ __baz_loader() {
 
     __baz_vecho 'Loading baz from data dir: #{BAZ_DATA_DIR_SHORT}'
 
-    for stage in "${__BAZ_STAGES[@]}"; do
+    for plugin in '#{BAZ_PLUG_DIR}'/*; do
         __baz_vecho
-        __baz_vecho "Loading stage: $stage()"
-        "$stage"
+
+        for stage in "${__BAZ_STAGES[@]}"; do
+            . "$plugin/baz.env"
+
+            __baz_vecho "Loading stage: $stage($BAZP_NAME)"
+            "$stage"
+        done
+
         __baz_vecho
     done
 }

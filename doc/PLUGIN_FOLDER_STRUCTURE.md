@@ -197,6 +197,47 @@ function <function_name>() {
 }
 ```
 
+### plugin/keybinds
+
+This directory includes [GNU readline syntax](https://www.gnu.org/software/bash/manual/html_node/Readline-Init-File-Syntax.html)
+files, they will get `bind`ed
+
+Folder structure should look like this:
+
+```
+keybinds/
+    | all.rl
+    | bindings/
+        | <context name>
+        | <context name>
+        | <context name>
+        | <context name>
+```
+
+- `all.rl`
+
+This includes full-context bindings, it will
+work in any context (keymap)
+
+- `bindings`
+
+This directory includes files which again files
+with readline syntax but they get binded to a specific
+context, for example `vi-command`, `emacs-meta`, etc.
+the context should be the name of the file
+
+`all.rl` Basically expands to:
+
+```bash
+bind -f 'all.rl"
+```
+
+`bindings/...` Expands to:
+
+```bash
+bind -m '<context name>' -f '<context name (as path)>'
+```
+
 ### plugin/runners
 
 This directory includes files that will be sourced/ran

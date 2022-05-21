@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.4.2'
+export BAZ_VERSION='1.5.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -202,7 +202,7 @@ baz_config() {
 # true: don't ask
 export BAZP_NO_ASKCHECK=false
 
-# BAZP_NO_ASKINST: Ask whether to install a plugin
+# BAZP_NO_ASKINST: Ask whether to (un)install a plugin
 # false: ask
 # true: don't ask
 export BAZP_NO_ASKINST=false
@@ -498,12 +498,15 @@ baz_uinstall() {
     } | indent
     eecho
 
-    yn 'Are you sure?' &&
-        for plugin in "$@"; do
-            log "Uninstalling: $plugin... " printf
-            rm -rf -- "${BAZ_PLUGDIR:?}/$plugin"
-            eecho 'done'
-        done
+    if [ "$BAZP_NO_ASKINST" != 'true' ]; then
+        yn 'Are you sure?' || error 'Aborting: canceled by the user'
+    fi
+
+    for plugin in "$@"; do
+        log "Uninstalling: $plugin... " printf
+        rm -rf -- "${BAZ_PLUGDIR:?}/$plugin"
+        eecho 'done'
+    done
 }
 
 baz_list() {
