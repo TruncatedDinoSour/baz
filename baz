@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.5.0'
+export BAZ_VERSION='1.5.1'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -278,6 +278,7 @@ bazp_install_dir() {
         yn "Do you want to edit $BAZP_INDEX?" && ${EDITOR:-vi} "$BAZP_INDEX"
     fi
 
+    bazp_reset_env
     . "$BAZP_INDEX"
     bazp_check_env
 
@@ -342,6 +343,8 @@ bazp_install_gits() {
 # Functionality
 
 baz_help() {
+    [ "$BAZP_NO_LOG" = true ] && return
+
     log "Help for baz v$BAZ_VERSION"
 
     {
@@ -485,18 +488,22 @@ baz_install() {
 
 baz_uinstall() {
     log 'Will uninstall:'
+    _ex="/tmp/baz_uninstall.ss"
 
     {
         for plugin in "$@"; do
             if [ ! -d "$BAZ_PLUGDIR/$plugin" ]; then
                 error "Plugin '$plugin' not installed"
-                return 1
+                : >"$_ex"
+                break
             fi
 
             log "$plugin"
         done
     } | indent
     eecho
+
+    [ -e "$_ex" ] && rm -f -- "$_ex" && exit 1
 
     if [ "$BAZP_NO_ASKINST" != 'true' ]; then
         yn 'Are you sure?' || error 'Aborting: canceled by the user'
@@ -593,6 +600,8 @@ main() {
         log 'Warning: no config found'
     fi
 
+    BAZP_NO_LOG=true bazp_reset_env
+
     case "$1" in
     help) baz_help ;;
     setup) baz_setup ;;
@@ -603,7 +612,7 @@ main() {
     update) baz_update "${@:2}" ;;
     info) baz_info "$2" "${@:3}" ;;
     upgrade) baz_upgrade ;;
-    version) echo "v$BAZ_VERSION" ;;
+    version) eecho "v$BAZ_VERSION" ;;
     *)
         log "Error: subcommand '$1' is not valid"
         baz_help 2>&1 | indent >&2
