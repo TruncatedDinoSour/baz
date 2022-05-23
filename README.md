@@ -40,7 +40,7 @@ You can leave a link to it in the [PLUGINS.md](/PLUGINS.md) file :)
 0. Clone the repo
 
 ```bash
-$ git clone https://github.com/TruncatedDinosour/baz-example-plugin
+$ git clone https://github.com/TruncatedDinosour/baz
 ```
 
 1. Install the script anywhere, or even run it standalone
