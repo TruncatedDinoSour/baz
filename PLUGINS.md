@@ -8,3 +8,4 @@
 - [Ls aliases by @TruncatedDinosour](https://github.com/TruncatedDinosour/ls-aliases-baz-plugin) [Name:ls-aliases-baz-plugin License:WTFPL]
 - [Vifzf bindings by @TruncatedDinosour](https://github.com/TruncatedDinosour/vifzf-keybinds-baz-plugin) [Name:vifzf-keybinds-baz-plugin License:WTFPL]
 - [Coffee TTY theme plugin by @coffee-theme](https://github.com/coffee-theme/coffee.tty-theme) [Name:coffee.tty-theme License:WTFPL]
+- [Venvin virtualenv helper plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/venvin-baz-plugin) [Name:venvin-baz-plugin License:WTFPL]
