@@ -19,7 +19,9 @@ __baz_load_envs() {
             [ ! "$_env_name" ] && continue
 
             __baz_vecho "Loading env variable '$_env_name'"
-            export "$_env_name"="$(cat -- "$_baz_env")"
+
+            __baz_env="$(cat -- "$_baz_env")"
+            export "$_env_name"="${!__baz_env}"
         done
     fi
 }
