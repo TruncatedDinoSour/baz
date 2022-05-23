@@ -68,7 +68,7 @@ $ ./baz setup
 
 ```bash
 export BAZ_LOADER_ENABLED=true
-_baz_loader="$(unexpand_path "$BAZ_LOADER" '$HOME')"
+_baz_loader="$HOME/.local/share/baz/loader.sh"
 
 [ ! -f "$_baz_loader" ] || source "$_baz_loader"
 ```
