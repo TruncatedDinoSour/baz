@@ -68,7 +68,9 @@ $ ./baz setup
 
 ```bash
 export BAZ_LOADER_ENABLED=true
-[ -f "$HOME/.local/share/baz/loader.sh" ] && source "$HOME/.local/share/baz/loader.sh"
+_baz_loader="$(unexpand_path "$BAZ_LOADER" '$HOME')"
+
+[ ! -f "$_baz_loader" ] || source "$_baz_loader"
 ```
 
 This is the main loader for plugins
@@ -82,7 +84,7 @@ $ ./scripts/comp.sh
 # Help page
 
 ```bash
-$ ./baz help
+$ baz help
 ```
 
 # Upgrading
