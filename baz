@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.5.2'
+export BAZ_VERSION='1.6.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -239,6 +239,7 @@ baz_loader() {
         -e "$(baz_loader_q 'BAZ_DATA_DIR_SHORT' "$BAZ_DIR")" \
         -e "$(baz_loader_q 'BAZ_DATA_DIR' "$BAZ_DIR")" \
         -e "$(baz_loader_q 'BAZ_PLUG_DIR' "$BAZ_PLUGDIR")" \
+        -e "$(baz_loader_q 'RHASH' "$(head -n 10 /dev/urandom | sha512sum | awk '{print $1}')_$((RANDOM * 2))")" \
         "$BAZ_LOADER_TEMPLATE"
 }
 
@@ -389,6 +390,8 @@ baz_help() {
 }
 
 baz_setup() {
+    use sha512sum awk
+
     if [ "$_baz_upgrade" ]; then
         _baz_new_ver=$(BAZ_NORLWRAP=true ./baz version)
 
@@ -592,7 +595,7 @@ main() {
 
     use trap command find rm cp mkdir \
         read printf unset return \
-        while echo git wait
+        while echo git wait head
 
     if [ -f "$BAZ_CONF" ]; then
         . "$BAZ_CONF"

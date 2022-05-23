@@ -9,6 +9,12 @@ fi
 __baz_get_base() { echo "${1##*/}"; }
 alias __baz_sanitize="sed 's/\W//g'"
 
+__expand_var() {
+    delimiter='_______#{RHASH}_baz_expand_var_#{RHASH}_______'
+    cmd="cat <<$delimiter"$'\n'"$(cat -- "$1")"$'\n'"$delimiter"
+    eval "$cmd"
+}
+
 __baz_load_envs() {
     _envs_dir="$plugin/$BAZP_SRC/environments"
 
@@ -20,8 +26,7 @@ __baz_load_envs() {
 
             __baz_vecho "Loading env variable '$_env_name'"
 
-            __baz_env="$(cat -- "$_baz_env")"
-            export "$_env_name"="${!__baz_env}"
+            export "$_env_name"="$(__expand_var "$_baz_env")"
         done
     fi
 }
