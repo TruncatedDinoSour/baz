@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.6.0'
+export BAZ_VERSION='1.6.1'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -75,6 +75,7 @@ baz_update_plugin_git() {
     old_ver="$BAZP_VER"
     bazp_reset_env
 
+    git reset --quiet --hard
     git pull --quiet --all
 
     . "$BAZP_INDEX"
@@ -402,8 +403,9 @@ baz_setup() {
 
         log "Upgrading baz v$BAZ_VERSION"
 
-        log "Pulling repo... " printf
-        git pull -q 2>/dev/null || error 'Failed to pull from repo'
+        log "Updating repo... " printf
+        git reset --quiet --hard 2>/dev/null || error 'Failed to reset the repo'
+        git pull --quiet 2>/dev/null || error 'Failed to pull from repo'
         eecho 'done'
     else
         log "Setting up baz v$BAZ_VERSION"
