@@ -9,3 +9,7 @@
 - [Vifzf bindings by @TruncatedDinosour](https://github.com/TruncatedDinosour/vifzf-keybinds-baz-plugin) [Name:vifzf-keybinds-baz-plugin License:WTFPL]
 - [Coffee TTY theme plugin by @coffee-theme](https://github.com/coffee-theme/coffee.tty-theme) [Name:coffee.tty-theme License:WTFPL]
 - [Venvin virtualenv helper plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/venvin-baz-plugin) [Name:venvin-baz-plugin License:WTFPL]
+- [Trash CLI aliases plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/trash-cli-rm-baz) [Name:trash-cli-rm-baz License:WTFPL]
+- [YT-dlp aliases plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/yt-dlp-aliases-baz-plugin) [Name:yt-dlp-aliases-baz-plugin License:WTFPL]
+- [Bettercmd plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/bettercmd-baz-plugin) [Name:bettercmd-baz-plugin License:WTFPL]
+- [Cmdutils plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/cmdutils-baz-plugin) [Name:cmdutils-baz-plugin License:WTFPL]
