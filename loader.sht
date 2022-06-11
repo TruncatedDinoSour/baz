@@ -100,7 +100,7 @@ __baz_load_completions() {
             [ ! -f "$_baz_completion" ] && continue
             __baz_vecho "Adding completion: $([ "$BAZ_DEBUG_LOAD" ] && __baz_get_base "$_baz_runner")"
 
-            complete -F "$(head -n 1 "$_baz_completion")" \
+            complete -F "$(head -n 1 -- "$_baz_completion")" \
                 -o bashdefault -o default "$(__baz_get_base "$_baz_completion")"
         done
     fi
@@ -148,10 +148,9 @@ __baz_loader() {
 
     for plugin in '#{BAZ_PLUG_DIR}'/*; do
         __baz_vecho
+        . "$plugin/baz.env"
 
         for stage in "${__BAZ_STAGES[@]}"; do
-            . "$plugin/baz.env"
-
             __baz_vecho "Loading stage: $stage($BAZP_NAME)"
             "$stage"
         done
