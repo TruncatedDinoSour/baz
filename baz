@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.7.0'
+export BAZ_VERSION='1.7.1'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -241,6 +241,7 @@ baz_loader() {
         -e "$(baz_loader_q 'BAZ_DATA_DIR' "$BAZ_DIR")" \
         -e "$(baz_loader_q 'BAZ_PLUG_DIR' "$BAZ_PLUGDIR")" \
         -e "$(baz_loader_q 'RHASH' "$(head -n 10 /dev/urandom | sha512sum | awk '{print $1}')_$((RANDOM * 2))")" \
+        -e "$(baz_loader_q 'BAZ_VER' "$BAZ_VERSION")" \
         "$BAZ_LOADER_TEMPLATE"
 }
 
