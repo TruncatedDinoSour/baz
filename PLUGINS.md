@@ -1,4 +1,4 @@
-# Baz plugins
+# Some baz plugins :)
 
 - [Example plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/baz-example-plugin) [Name:example License:WTFPL]
 - [Shortcmd plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/shortcmd-baz-plugin) [Name:shortcmd-baz-plugin License:WTFPL]
@@ -13,3 +13,4 @@
 - [YT-dlp aliases plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/yt-dlp-aliases-baz-plugin) [Name:yt-dlp-aliases-baz-plugin License:WTFPL]
 - [Bettercmd plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/bettercmd-baz-plugin) [Name:bettercmd-baz-plugin License:WTFPL]
 - [Cmdutils plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/cmdutils-baz-plugin) [Name:cmdutils-baz-plugin License:WTFPL]
+- [Agnoster theme by @TruncatedDinosour](https://github.com/TruncatedDinosour/agnoster-theme-baz-plugin) [Name:agnoster-theme-baz-plugin License:MIT,MIT]
