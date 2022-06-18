@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.8.2'
+export BAZ_VERSION='1.8.3'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -64,6 +64,12 @@ yn() {
     printf ' [y/N] %s\n >> ' "$1"
     read -r ans
     [ "$ans" = 'y' ]
+}
+
+check_plugin_state() {
+    [ ! "$plugin" ] && error 'No plugins supplied'
+    [ ! -d "$BAZ_PLUGDIR/$plugin" ] && error "Plugin '$plugin' not installed"
+    return 0
 }
 
 baz_update_plugin_git() {
@@ -150,6 +156,7 @@ describe_env() {
     log "Source: $BAZP_SOURCE"
     [ -f 'method' ] && log "Installed_with_method: $(head -n 1 method)"
     [ -f 'origin' ] && log "Plugin origin: $(head -n 1 origin)"
+    log "Disabled: $( ([ -f 'disabled' ] && echo 'Yes') || echo 'No')"
 
     BAZP_NO_LOG=true bazp_reset_env
     return 0
@@ -496,11 +503,15 @@ baz_install() {
 }
 
 baz_uinstall() {
+    [ ! "$1" ] && error 'No plugins specified'
+
     log 'Will uninstall:'
     _ex="/tmp/baz_uninstall.ss"
 
     {
         for plugin in "$@"; do
+            check_plugin_state
+
             if [ ! -d "$BAZ_PLUGDIR/$plugin" ]; then
                 error "Plugin '$plugin' not installed"
                 : >"$_ex"
@@ -586,8 +597,10 @@ baz_upgrade() {
 }
 
 baz_disable() {
+    [ ! "$1" ] && error 'No plugins specified'
+
     for plugin in "$@"; do
-        [ ! "$plugin" ] && continue
+        check_plugin_state
 
         log "Disabling plugin $plugin"
         : >"$BAZ_PLUGDIR/$plugin/disabled"
@@ -595,8 +608,10 @@ baz_disable() {
 }
 
 baz_enable() {
+    [ ! "$1" ] && error 'No plugins specified'
+
     for plugin in "$@"; do
-        [ ! "$plugin" ] && continue
+        check_plugin_state
 
         log "Enabling plugin $plugin"
         rm -f -- "$BAZ_PLUGDIR/$plugin/disabled"
