@@ -9,6 +9,8 @@ baz:
   - info
   - upgrade
   - version
+  - disable
+  - enable
 
 baz install:
   - local
