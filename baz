@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.8.0'
+export BAZ_VERSION='1.8.1'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -359,7 +359,7 @@ baz_help() {
 
         entry 'unsetup' 'Unsetup (remove) baz plugin manager'
 
-        entry 'install [method] [atoms]' 'Install plugins'
+        entry 'install [method] [atoms...]' 'Install plugins'
         {
             entry 'local' 'Local plugin from a directory'
             log 'Atom type: path to plugin, e.g. /tmp/myplug' | indent
@@ -368,11 +368,11 @@ baz_help() {
             log 'Atom type: <repo url>, e.g. https://github.com/test/test' | indent
         } | indent
 
-        entry 'uninstall [plugins]' 'Uninstall plugins'
+        entry 'uninstall [plugins...]' 'Uninstall plugins'
         entry 'list' 'List all installed plugins'
-        entry 'update <plugins>' 'Update all installed or specified plugins'
+        entry 'update <plugins...>' 'Update all installed or specified plugins'
 
-        entry 'info [exist|local|git] [atoms]' 'Describe (get info) about plugins'
+        entry 'info [exist|local|git] [atoms...]' 'Describe (get info) about plugins'
         {
             entry 'exist' 'Describe existing (installed) plugin'
             log 'Atom type: plugin name, e.g. myplug' | indent
@@ -388,6 +388,9 @@ baz_help() {
         log "Make sure you're in the baz git repo's directory" | indent
 
         entry 'version' 'Print version and exit'
+
+        entry 'disable [plugins...]' 'Disable plugins'
+        entry 'enable [plugins...]' 'Enable plugins'
     } | indent >&2
 }
 
@@ -530,7 +533,10 @@ baz_list() {
 
     {
         while read -r dir; do
-            log "$(get_base "$dir")"
+            _plugent="$(get_base "$dir")"
+            [ -f "$dir/disabled" ] && _plugent+=' [DISABLED]' >&2
+
+            log "$_plugent"
         done <<<"$(find "$BAZ_PLUGDIR" -maxdepth 1 -not -path "$BAZ_PLUGDIR" -type d)"
     } | indent >&2
 }
@@ -579,6 +585,24 @@ baz_upgrade() {
     _baz_upgrade=true baz_setup
 }
 
+baz_disable() {
+    for plugin in "$@"; do
+        [ ! "$plugin" ] && continue
+
+        log "Disabling plugin $plugin"
+        : >"$BAZ_PLUGDIR/$plugin/disabled"
+    done
+}
+
+baz_enable() {
+    for plugin in "$@"; do
+        [ ! "$plugin" ] && continue
+
+        log "Enabling plugin $plugin"
+        rm -f -- "$BAZ_PLUGDIR/$plugin/disabled"
+    done
+}
+
 main() {
     use printf return
 
@@ -619,6 +643,8 @@ main() {
     info) baz_info "$2" "${@:3}" ;;
     upgrade) baz_upgrade ;;
     version) eecho "v$BAZ_VERSION" ;;
+    disable) baz_disable "${@:2}" ;;
+    enable) baz_enable "${@:2}" ;;
     *)
         log "Error: subcommand '$1' is not valid"
         baz_help 2>&1 | indent >&2

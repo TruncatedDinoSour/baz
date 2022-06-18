@@ -47,3 +47,9 @@ baz info git:
   - git+https://
   - http://
   - git+http://
+
+baz disable:
+  - $([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -maxdepth 1 -not -path . -and -not -path "$HOME/.local/share/baz/plugins" -type d -exec basename {} \;)
+
+baz enable:
+  - $([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -maxdepth 1 -not -path . -and -not -path "$HOME/.local/share/baz/plugins" -type d -exec basename {} \;)

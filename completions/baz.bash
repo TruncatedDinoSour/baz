@@ -19,6 +19,8 @@ _baz() {
     'install'*) COMPREPLY=($(compgen -W "local git" -- "$cur")) ;;
     'update'*) COMPREPLY=($(compgen -W "$([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -maxdepth 1 -not -path . -and -not -path "$HOME/.local/share/baz/plugins" -type d -exec basename {} \;)" -- "$cur")) ;;
     'info'*) COMPREPLY=($(compgen -W "exist local git" -- "$cur")) ;;
+    'disable'*) COMPREPLY=($(compgen -W "$([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -maxdepth 1 -not -path . -and -not -path "$HOME/.local/share/baz/plugins" -type d -exec basename {} \;)" -- "$cur")) ;;
+    'enable'*) COMPREPLY=($(compgen -W "$([ -d "$HOME/.local/share/baz/plugins" ] && find "$HOME/.local/share/baz/plugins" -maxdepth 1 -not -path . -and -not -path "$HOME/.local/share/baz/plugins" -type d -exec basename {} \;)" -- "$cur")) ;;
     ''*) COMPREPLY=($(compgen -W "help setup unsetup install uninstall list update info upgrade version" -- "$cur")) ;;
     esac
 } && complete -F _baz -o bashdefault -o default baz
