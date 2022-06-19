@@ -8,7 +8,7 @@ else
 fi
 
 __baz_get_base() { echo "${1##*/}"; }
-alias __baz_sanitize="sed '/^[^;:-_+]/! s/\W//g'"
+__baz_sanitize() { sed "s/\s*//g; s/[\"\'~\!#\\\/\$%\^&\*\(\)\=]//g; s/\.\.//g"; }
 
 __expand_var() {
     delimiter='_______#{RHASH}_baz_expand_var_#{RHASH}_______'

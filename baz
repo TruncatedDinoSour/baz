@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.8.4'
+export BAZ_VERSION='1.9.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -31,6 +31,8 @@ eecho() { [ "$BAZP_NO_LOG" = true ] || echo "$1" >&2; }
 unexpand_path() { echo "${1/"$HOME"/"${2:-~}"}"; }
 baz_git_clone() { git clone --quiet --recursive -- "$1" "$2"; }
 get_base() { echo "${1##*/}"; }
+baz_sanitize() { sed "s/\s*//g; s/[\"\'~\!#\\\/\$%\^&\*\(\)\=]//g; s/\.\.//g"; }
+
 in_array() {
     for element in $1; do
         if [[ $2 =~ $element ]]; then
@@ -67,9 +69,18 @@ yn() {
 }
 
 check_plugin_state() {
-    [ ! "$plugin" ] && error 'No plugins supplied'
-    [ ! -d "$BAZ_PLUGDIR/$plugin" ] && error "Plugin '$plugin' not installed"
-    return 0
+    plugin="$(echo "$plugin" | baz_sanitize)"
+    echo "$plugin"
+
+    if [ ! "$plugin" ]; then
+        [ "$1" ] && : >"$1"
+        error 'No plugins supplied'
+    fi
+
+    if [ ! -d "$BAZ_PLUGDIR/$plugin" ]; then
+        [ "$1" ] && : >"$1"
+        error "Plugin '$plugin' not installed"
+    fi
 }
 
 baz_update_plugin_git() {
@@ -189,11 +200,14 @@ describe_git() {
 describe_exist() {
     _plugdir="$BAZ_PLUGDIR/$1"
 
-    [ ! -d "$BAZ_PLUGDIR" ] && error "Plugin directory does not exist"
+    [ ! -d "$BAZ_PLUGDIR" ] && error 'Plugin directory does not exist'
     [ ! -d "$_plugdir" ] && error "Plugin '$1' not installed"
 
     cd -- "$_plugdir"
+
+    [ ! -f "$BAZP_INDEX" ] && error "'$BAZP_INDEX' does not exist"
     . "$BAZP_INDEX"
+
     describe_env
     cd -- "$BAZP_INITDIR"
 }
@@ -221,7 +235,7 @@ export BAZP_NO_ASKINST=false
 export BLACKLIST_BAZP_NAME=(.*-unstable$ .*-dangerous$)
 
 # will blacklist all plugins that end with either -unstable or -dangerous'
-# blocking property/variable $BAZP_NAME
+# blocking property/variable \$BAZP_NAME
 EOF
 }
 
@@ -290,6 +304,7 @@ bazp_install_dir() {
 
     bazp_reset_env
     . "$BAZP_INDEX"
+    BAZP_NAME="$(echo "$BAZP_NAME" | baz_sanitize)"
     bazp_check_env
 
     for listing in "${BAZP_ENV[@]}"; do
@@ -502,15 +517,17 @@ baz_install() {
     esac
 }
 
-baz_uinstall() {
+baz_uninstall() {
     [ ! "$1" ] && error 'No plugins specified'
 
     log 'Will uninstall:'
     _ex="/tmp/baz_uninstall.ss"
 
     {
+        set -e
+
         for plugin in "$@"; do
-            check_plugin_state
+            check_plugin_state "$_ex"
 
             if [ ! -d "$BAZ_PLUGDIR/$plugin" ]; then
                 error "Plugin '$plugin' not installed"
@@ -530,6 +547,8 @@ baz_uinstall() {
     fi
 
     for plugin in "$@"; do
+        check_plugin_state
+
         log "Uninstalling: $plugin... " printf
         rm -rf -- "${BAZ_PLUGDIR:?}/$plugin"
         eecho 'done'
@@ -585,6 +604,8 @@ baz_info() {
         error "Plugin type '$1' is not known"
 
     for plugin in "${@:2}"; do
+        check_plugin_state
+
         $fn "$plugin"
         eecho
     done
@@ -653,12 +674,12 @@ main() {
     setup) baz_setup ;;
     unsetup) baz_unsetup ;;
     install) baz_install "$2" "${@:3}" ;;
-    uninstall) baz_uinstall "${@:2}" ;;
+    uninstall) baz_uninstall "${@:2}" ;;
     list) baz_list ;;
     update) baz_update "${@:2}" ;;
     info) baz_info "$2" "${@:3}" ;;
     upgrade) baz_upgrade ;;
-    version) eecho "v$BAZ_VERSION" ;;
+    version) echo "v$BAZ_VERSION" ;;
     disable) baz_disable "${@:2}" ;;
     enable) baz_enable "${@:2}" ;;
     *)
