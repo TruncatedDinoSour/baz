@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.9.0'
+export BAZ_VERSION='1.9.1'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -70,7 +70,6 @@ yn() {
 
 check_plugin_state() {
     plugin="$(echo "$plugin" | baz_sanitize)"
-    echo "$plugin"
 
     if [ ! "$plugin" ]; then
         [ "$1" ] && : >"$1"
@@ -476,10 +475,12 @@ baz_setup() {
         log "Done! Now just add this (if it already isn't there) to your ~/.bashrc :"
         eecho
 
-        echo '   export BAZ_LOADER_ENABLED=true'
-        echo "   _baz_loader=\"$(unexpand_path "$BAZ_LOADER" '$HOME')\""
-        echo
-        echo '   [ ! -f "$_baz_loader" ] || source "$_baz_loader"'
+        cat <<EOF
+    export BAZ_LOADER_ENABLED=true'
+    _baz_loader="\$(unexpand_path "\$BAZ_LOADER" "\$HOME")"
+
+    [ ! -f "\$_baz_loader" ] || source "\$_baz_loader"
+EOF
     fi
 }
 
