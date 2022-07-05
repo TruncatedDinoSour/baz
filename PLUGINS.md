@@ -14,3 +14,4 @@
 - [Bettercmd plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/bettercmd-baz-plugin) [Name:bettercmd-baz-plugin License:WTFPL]
 - [Cmdutils plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/cmdutils-baz-plugin) [Name:cmdutils-baz-plugin License:WTFPL]
 - [Agnoster theme by @TruncatedDinosour](https://github.com/TruncatedDinosour/agnoster-theme-baz-plugin) [Name:agnoster-theme-baz-plugin License:MIT,MIT]
+- [Git aliases by @TruncatedDinosour](https://github.com/TruncatedDinosour/git-aliases-plugin) [Name:git-aliases-plugin License:WTFPL]
