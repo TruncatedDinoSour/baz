@@ -7,8 +7,6 @@ else
     __baz_vecho() { :; }
 fi
 
-export BAZ_LOADER_VERSION='#{BAZ_VER}'
-
 __baz_get_base() { echo "${1##*/}"; }
 __baz_sanitize() {
     read -r x
@@ -141,6 +139,8 @@ export __BAZ_STAGES=(
 )
 
 __baz_loader() {
+    export BAZ_LOADER_VERSION='#{BAZ_VER}'
+
     if [ -z "$(ls -A -- '#{BAZ_PLUG_DIR}' 2>/dev/null)" ] || [ ! -d '#{BAZ_PLUG_DIR}' ]; then
         __baz_vecho 'No plugin dir found'
         return 1
