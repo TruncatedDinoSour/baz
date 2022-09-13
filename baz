@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.9.1'
+export BAZ_VERSION='1.9.2'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -31,7 +31,11 @@ eecho() { [ "$BAZP_NO_LOG" = true ] || echo "$1" >&2; }
 unexpand_path() { echo "${1/"$HOME"/"${2:-~}"}"; }
 baz_git_clone() { git clone --quiet --recursive -- "$1" "$2"; }
 get_base() { echo "${1##*/}"; }
-baz_sanitize() { sed "s/\s*//g; s/[\"\'~\!#\\\/\$%\^&\*\(\)\=]//g; s/\.\.//g"; }
+baz_sanitize() {
+    read -r x
+    local tmp="${x//[[:space:]\"\'~!#\\$%^&*\/()=]/}"
+    printf '%s' "${tmp//../}"
+}
 
 in_array() {
     for element in $1; do
@@ -666,6 +670,10 @@ main() {
         . "$BAZ_CONF"
     else
         log 'Warning: no config found'
+    fi
+
+    if [ "$BAZ_LOADER_VERSION" ] && [ "$BAZ_LOADER_VERSION" != "$BAZ_VERSION" ]; then
+        log "Baz loader version ($BAZ_LOADER_VERSION) does not match current version ($BAZ_VERSION)"
     fi
 
     BAZP_NO_LOG=true bazp_reset_env

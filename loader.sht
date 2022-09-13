@@ -7,8 +7,14 @@ else
     __baz_vecho() { :; }
 fi
 
+export BAZ_LOADER_VERSION='#{BAZ_VER}'
+
 __baz_get_base() { echo "${1##*/}"; }
-__baz_sanitize() { sed "s/\s*//g; s/[\"\'~\!#\\\/\$%\^&\*\(\)\=]//g; s/\.\.//g"; }
+__baz_sanitize() {
+    read -r x
+    local tmp="${x//[[:space:]\"\'~!#\\$%^&*\/()=]/}"
+    printf '%s' "${tmp//../}"
+}
 
 __expand_var() {
     delimiter='_______#{RHASH}_baz_expand_var_#{RHASH}_______'
