@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='1.9.2'
+export BAZ_VERSION='2.0.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -31,6 +31,7 @@ eecho() { [ "$BAZP_NO_LOG" = true ] || echo "$1" >&2; }
 unexpand_path() { echo "${1/"$HOME"/"${2:-~}"}"; }
 baz_git_clone() { git clone --quiet --recursive -- "$1" "$2"; }
 get_base() { echo "${1##*/}"; }
+
 baz_sanitize() {
     read -r x
     local tmp="${x//[[:space:]\"\'~!#\\$%^&*\/()=]/}"
@@ -169,7 +170,7 @@ describe_env() {
     log "Recomended_install_method: $BAZP_METHOD"
     log "Source: $BAZP_SOURCE"
     [ -f 'method' ] && log "Installed_with_method: $(head -n 1 method)"
-    [ -f 'origin' ] && log "Plugin origin: $(head -n 1 origin)"
+    [ -f 'origin' ] && log "Plugin_origin: $(head -n 1 origin)"
     log "Disabled: $( ([ -f 'disabled' ] && echo 'Yes') || echo 'No')"
 
     BAZP_NO_LOG=true bazp_reset_env
