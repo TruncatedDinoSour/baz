@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='2.2.0'
+export BAZ_VERSION='2.2.1'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -42,7 +42,7 @@ baz_hook() {
 }
 
 baz_run_hook() {
-    if [ -n "$1" ] || [ ! -d "${BAZP_SRC:?}/hooks" ]; then
+    if [ -z "$1" ] || [ ! -d "${BAZP_SRC:?}/hooks" ]; then
         return
     fi
 
@@ -350,7 +350,6 @@ bazp_install_dir() {
     bazp_reset_env
     . "$BAZP_INDEX"
     BAZP_NAME="$(echo "$BAZP_NAME" | baz_sanitize)"
-    baz_run_hook 'pre-install'
     bazp_check_env
 
     for listing in "${BAZP_ENV[@]}"; do
@@ -364,6 +363,8 @@ bazp_install_dir() {
 
     [ ! -d "${BAZ_PLUGDIR:?}" ] && mkdir -p -- "${BAZ_PLUGDIR:?}"
     [ -d "${BAZ_PLUGDIR:?}/${BAZP_NAME:?}" ] && error "Plugin '$BAZP_NAME' already is installed"
+
+    baz_run_hook 'pre-install'
 
     log "Installing plugin: ${BAZP_NAME:?}... " printf
 
