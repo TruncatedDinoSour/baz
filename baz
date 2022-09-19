@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='2.1.0'
+export BAZ_VERSION='2.2.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -25,12 +25,34 @@ export BAZ_LOADER_TEMPLATE="$BAZP_INITDIR/loader.sht"
 
 # Helpers
 
-entry() { printf " + %-30s%s\n" "$1" "$2"; }
+entry() { printf " + %-35s%s\n" "$1" "$2"; }
 log() { [ "$BAZP_NO_LOG" = true ] || ${2:-echo} " * $1"; }
 eecho() { [ "$BAZP_NO_LOG" = true ] || echo "$1" >&2; }
 unexpand_path() { echo "${1/"$HOME"/"${2:-~}"}"; }
 baz_git_clone() { git clone --quiet --recursive -- "$1" "$2"; }
 get_base() { echo "${1##*/}"; }
+
+baz_hook() {
+    local hook="${BAZP_SRC:?}/hooks/$1"
+
+    if [ -f "$hook" ]; then
+        BAZP_NO_LOG=false log "$2: $1"
+        "$3" "$hook"
+    fi
+}
+
+baz_run_hook() {
+    if [ -n "$1" ] || [ ! -d "${BAZP_SRC:?}/hooks" ]; then
+        return
+    fi
+
+    baz_hook "$1-pre" 'Sourcing pre-hook' source
+    baz_hook "$1" 'Running hook' bash
+    baz_hook "$1-source" 'Sourcing hook' source
+    baz_hook "$1-post" 'Sourcing post-hook' source
+
+    return 0
+}
 
 baz_sanitize() {
     read -r x
@@ -81,7 +103,7 @@ check_plugin_state() {
         error 'No plugins supplied'
     fi
 
-    if [ ! -d "$BAZ_PLUGDIR/$plugin" ]; then
+    if [ ! -d "${BAZ_PLUGDIR:?}/$plugin" ]; then
         [ "$1" ] && : >"$1"
         error "Plugin '$plugin' not installed"
     fi
@@ -94,7 +116,7 @@ baz_update_plugin_git() {
 
     bazp_check_env
     old_ver="$BAZP_VER"
-    bazp_reset_env
+    baz_run_hook 'pre-update'
 
     git reset --quiet --hard
     git remote update --prune >/dev/null 2>&1
@@ -102,10 +124,10 @@ baz_update_plugin_git() {
     if git status -uno | grep -iq behind; then
         git merge -X theirs origin --quiet --all
 
+        bazp_reset_env
         . "$BAZP_INDEX"
         bazp_check_env
         new_ver="$BAZP_VER"
-        bazp_reset_env
 
         BAZP_NO_LOG=false
 
@@ -115,6 +137,9 @@ baz_update_plugin_git() {
             log "Updated '$1' from v$old_ver -> v$new_ver"
         fi
     fi
+
+    baz_run_hook 'post-update'
+    bazp_reset_env
 }
 
 baz_update_plugin_local() {
@@ -126,16 +151,16 @@ baz_update_plugin_local() {
 
     BAZP_NO_LOG=true
 
+    . "$BAZP_INDEX"
+    bazp_check_env
+    old_ver="$BAZP_VER"
+    baz_run_hook 'pre-update'
+
     if [ -n "$(diff -rq --color=never -x .git -x disabled -x method -x origin "$origin" . 2>&1 || :)" ]; then
+        bazp_reset_env
         . "$local_bazp"
         bazp_check_env
         new_ver="$BAZP_VER"
-        bazp_reset_env
-
-        . "$BAZP_INDEX"
-        bazp_check_env
-        old_ver="$BAZP_VER"
-        bazp_reset_env
 
         BAZP_NO_LOG=false
 
@@ -154,6 +179,9 @@ baz_update_plugin_local() {
 
         cp -r -- "$origin"/* .
     fi
+
+    baz_run_hook 'post-update'
+    bazp_reset_env
 }
 
 baz_update_plugin() {
@@ -215,14 +243,14 @@ describe_git() {
 }
 
 describe_exist() {
-    _plugdir="$BAZ_PLUGDIR/$1"
+    _plugdir="${BAZ_PLUGDIR:?}/$1"
 
-    [ ! -d "$BAZ_PLUGDIR" ] && error 'Plugin directory does not exist'
-    [ ! -d "$_plugdir" ] && error "Plugin '$1' not installed"
+    [ ! -d "${BAZ_PLUGDIR:?}" ] && error 'Plugin directory does not exist'
+    [ ! -d "${_plugdir:?}" ] && error "Plugin '$1' not installed"
 
     cd -- "$_plugdir"
 
-    [ ! -f "$BAZP_INDEX" ] && error "'$BAZP_INDEX' does not exist"
+    [ ! -f "${BAZP_INDEX:?}" ] && error "'$BAZP_INDEX' does not exist"
     . "$BAZP_INDEX"
 
     describe_env
@@ -322,6 +350,7 @@ bazp_install_dir() {
     bazp_reset_env
     . "$BAZP_INDEX"
     BAZP_NAME="$(echo "$BAZP_NAME" | baz_sanitize)"
+    baz_run_hook 'pre-install'
     bazp_check_env
 
     for listing in "${BAZP_ENV[@]}"; do
@@ -333,19 +362,21 @@ bazp_install_dir() {
             error "$listing '${!listing}' is blacklisted by $_blacklist"
     done
 
-    [ ! -d "$BAZ_PLUGDIR" ] && mkdir -p -- "$BAZ_PLUGDIR"
-    [ -d "$BAZ_PLUGDIR/$BAZP_NAME" ] && error "Plugin '$BAZP_NAME' already is installed"
+    [ ! -d "${BAZ_PLUGDIR:?}" ] && mkdir -p -- "${BAZ_PLUGDIR:?}"
+    [ -d "${BAZ_PLUGDIR:?}/${BAZP_NAME:?}" ] && error "Plugin '$BAZP_NAME' already is installed"
 
-    log "Installing plugin: $BAZP_NAME... " printf
+    log "Installing plugin: ${BAZP_NAME:?}... " printf
 
-    cp -r . "$BAZ_PLUGDIR/$BAZP_NAME"
+    cp -r . "${BAZ_PLUGDIR:?}/${BAZP_NAME:?}"
 
     if [ ! "$_bazp_no_write" ]; then
-        echo 'local' >"$BAZ_PLUGDIR/$BAZP_NAME/method"
-        pwd >"$BAZ_PLUGDIR/$BAZP_NAME/origin"
+        echo 'local' >"${BAZ_PLUGDIR:?}/${BAZP_NAME:?}/method"
+        pwd >"${BAZ_PLUGDIR:?}/${BAZP_NAME:?}/origin"
     fi
 
     eecho 'done'
+
+    baz_run_hook 'post-install'
 
     cd -- "$BAZP_INITDIR"
     [ "$_bazp_no_clearenv" ] || bazp_reset_env
@@ -363,7 +394,7 @@ bazp_install_git() {
     log "Installing $_plugdir"
     _bazp_no_clearenv=true _bazp_no_write=true bazp_install_dir "$_plugdir"
 
-    echo 'git' >"$BAZ_PLUGDIR/$BAZP_NAME/method"
+    echo 'git' >"${BAZ_PLUGDIR:?}/${BAZP_NAME:?}/method"
     bazp_reset_env
     rm -rf -- "$_plugdir"
 }
@@ -390,7 +421,7 @@ baz_help() {
     log "Help for baz v$BAZ_VERSION"
 
     {
-        log 'Subdommands:'
+        log 'Subcommands:'
         entry 'help' 'Print help'
 
         entry 'setup' 'Setup baz plugin manager'
@@ -404,7 +435,7 @@ baz_help() {
             log 'Atom type: path to plugin, e.g. /tmp/myplug' | indent
 
             entry 'git' 'Git plugin from git'
-            log 'Atom type: <repo url>, e.g. https://github.com/test/test' | indent
+            log 'Atom type: <repo url>, e.g. https://ari-web.xyz/gh/baz-example-plugin' | indent
         } | indent
 
         entry 'uninstall [plugins...]' 'Uninstall plugins'
@@ -420,7 +451,7 @@ baz_help() {
             log 'Atom type: path to plugin, e.g. /tmp/myplug' | indent
 
             entry 'git' 'Describe plugin from a git source'
-            log 'Atom type: <repo url>, e.g. https://github.com/test/test' | indent
+            log 'Atom type: <repo url>, e.g. https://ari-web.xyz/gh/baz-example-plugin' | indent
         } | indent
 
         entry 'upgrade' 'Upgrade baz'
@@ -482,9 +513,13 @@ baz_setup() {
         eecho 'found'
     fi
 
-    log "Generating loader to $(unexpand_path "$BAZ_LOADER")... " printf
-    baz_loader >"$BAZ_LOADER"
-    eecho 'done'
+    if [ -f "$BAZ_LOADER_TEMPLATE" ]; then
+        log "Generating loader to $(unexpand_path "$BAZ_LOADER")... " printf
+        baz_loader >"$BAZ_LOADER"
+        eecho 'done'
+    else
+        log "No loader template ($(unexpand_path "$BAZ_LOADER_TEMPLATE")) found in CWD"
+    fi
 
     eecho
     if [ "$_baz_upgrade" ]; then
@@ -548,7 +583,7 @@ baz_uninstall() {
         for plugin in "$@"; do
             check_plugin_state "$_ex"
 
-            if [ ! -d "$BAZ_PLUGDIR/$plugin" ]; then
+            if [ ! -d "${BAZ_PLUGDIR:?}/${plugin:?}" ]; then
                 error "Plugin '$plugin' not installed"
                 : >"$_ex"
                 break
@@ -568,15 +603,21 @@ baz_uninstall() {
     for plugin in "$@"; do
         check_plugin_state
 
-        log "Uninstalling: $plugin... " printf
+        log "Uninstalling: $plugin..."
+
+        cd "${BAZ_PLUGDIR:?}/$plugin"
+        . "$BAZP_INDEX"
+        baz_run_hook 'pre-uninstall'
+        bazp_reset_env
+
+        cd "$BAZP_INITDIR"
         rm -rf -- "${BAZ_PLUGDIR:?}/$plugin"
-        eecho 'done'
     done
 }
 
 baz_list() {
-    [ ! -d "$BAZ_PLUGDIR" ] && error 'No plugin directory'
-    [ -z "$(ls -A -- "$BAZ_PLUGDIR")" ] && error 'No plugins installed'
+    [ ! -d "${BAZ_PLUGDIR:?}" ] && error 'No plugin directory'
+    [ -z "$(ls -A -- "${BAZ_PLUGDIR:?}")" ] && error 'No plugins installed'
 
     log 'Installed plugins:'
 
@@ -586,7 +627,7 @@ baz_list() {
             [ -f "$dir/disabled" ] && _plugent+=' [DISABLED]' >&2
 
             log "$_plugent"
-        done <<<"$(find "$BAZ_PLUGDIR" -maxdepth 1 -not -path "$BAZ_PLUGDIR" -type d)"
+        done <<<"$(find "${BAZ_PLUGDIR:?}" -maxdepth 1 -not -path "${BAZ_PLUGDIR:?}" -type d)"
     } | indent >&2
 }
 
@@ -597,15 +638,15 @@ baz_update() {
         eecho 'specified'
 
         for plugin in "$@"; do
-            plugin="$(get_base "$plugin")" check_plugin_state
-            baz_update_plugin "$BAZ_PLUGDIR/$plugin" &
+            plugin="$(get_base "${plugin:?}")" check_plugin_state
+            baz_update_plugin "${BAZ_PLUGDIR:?}/${plugin:?}" &
         done
     else
-        [ ! -d "$BAZ_PLUGDIR" ] && error 'No plugin directory'
+        [ ! -d "${BAZ_PLUGDIR:?}" ] && error 'No plugin directory'
         eecho 'all'
 
-        for plugin in "${BAZ_PLUGDIR}"/*; do
-            baz_update_plugin "$plugin" &
+        for plugin in "${BAZ_PLUGDIR:?}"/*; do
+            baz_update_plugin "${plugin:?}" &
         done
     fi
 
@@ -644,7 +685,7 @@ baz_disable() {
         check_plugin_state
 
         log "Disabling plugin $plugin"
-        : >"$BAZ_PLUGDIR/$plugin/disabled"
+        : >"${BAZ_PLUGDIR:?}/${plugin:?}/disabled"
     done
 }
 
@@ -655,7 +696,7 @@ baz_enable() {
         check_plugin_state
 
         log "Enabling plugin $plugin"
-        rm -f -- "$BAZ_PLUGDIR/$plugin/disabled"
+        rm -f -- "${BAZ_PLUGDIR:?}/${plugin:?}/disabled"
     done
 }
 

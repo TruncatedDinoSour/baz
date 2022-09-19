@@ -256,3 +256,43 @@ It gets expanded like this:
 ```bash
 source <runner name>
 ```
+### plugin/hooks
+
+You can store hooks here,
+they are either ran or sourced after or before a
+certain action, as of now I have restricted it to these hooks:
+
+- pre-install
+  - post-install
+- pre-update
+  - post-update
+- pre-uninstall
+
+These hooks will be ran with bash (`bash <hook-name>`),
+if you want more low level control and want to affect
+baz from the core just append `-source` to your hook name:
+
+- pre-install-source
+  - post-install-source
+- pre-update-source
+  - post-update-source
+- pre-uninstall-source
+
+These will be sourced (`source <hook-name>`)
+
+Also you an append `-pre` to run before the hook and
+`-post` after the hook, they will be sourced:
+
+- pre-install-pre
+- pre-install-post
+- pre-update-pre
+- pre-update-post
+- pre-uninstall-pre
+- pre-uninstall-post
+
+#### Order
+
+- Pre (source)
+- Hook (run)
+- Source (source)
+- Post (source)
