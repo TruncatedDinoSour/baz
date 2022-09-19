@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='2.0.0'
+export BAZ_VERSION='2.1.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -97,16 +97,24 @@ baz_update_plugin_git() {
     bazp_reset_env
 
     git reset --quiet --hard
-    git pull --quiet --all
+    git remote update --prune >/dev/null 2>&1
 
-    . "$BAZP_INDEX"
-    bazp_check_env
-    new_ver="$BAZP_VER"
-    bazp_reset_env
+    if git status -uno | grep -iq behind; then
+        git merge -X theirs origin --quiet --all
 
-    BAZP_NO_LOG=false
+        . "$BAZP_INDEX"
+        bazp_check_env
+        new_ver="$BAZP_VER"
+        bazp_reset_env
 
-    [ "$new_ver" != "$old_ver" ] && log "Updated '$1' from v$old_ver -> v$new_ver"
+        BAZP_NO_LOG=false
+
+        if [ "$new_ver" = "$old_ver" ]; then
+            log "Changes to '$1' v$old_ver"
+        else
+            log "Updated '$1' from v$old_ver -> v$new_ver"
+        fi
+    fi
 }
 
 baz_update_plugin_local() {
@@ -118,29 +126,34 @@ baz_update_plugin_local() {
 
     BAZP_NO_LOG=true
 
-    . "$local_bazp"
-    bazp_check_env
-    new_ver="$BAZP_VER"
-    bazp_reset_env
+    if [ -n "$(diff -rq --color=never -x .git -x disabled -x method -x origin "$origin" . 2>&1 || :)" ]; then
+        . "$local_bazp"
+        bazp_check_env
+        new_ver="$BAZP_VER"
+        bazp_reset_env
 
-    . "$BAZP_INDEX"
-    bazp_check_env
-    old_ver="$BAZP_VER"
-    bazp_reset_env
+        . "$BAZP_INDEX"
+        bazp_check_env
+        old_ver="$BAZP_VER"
+        bazp_reset_env
 
-    BAZP_NO_LOG=false
+        BAZP_NO_LOG=false
 
-    [ "$new_ver" == "$old_ver" ] && return
-    log "Updating '$1' from v$old_ver -> v$new_ver"
+        if [ "$new_ver" = "$old_ver" ]; then
+            log "Changes to '$1' v$old_ver"
+        else
+            log "Updating '$1' from v$old_ver -> v$new_ver"
+        fi
 
-    # I am in pain how stupid this expression is
-    # Btw can't use -exec or find breaks
+        # I am in pain how stupid this expression is
+        # Btw can't use -exec or find breaks
 
-    while read -r file; do
-        rm -rf -- "$file"
-    done <<<"$(find . -not -path . -and -not -path ./origin -and -not -path ./method)"
+        while read -r file; do
+            rm -rf -- "$file"
+        done <<<"$(find . -not -path . -and -not -path ./origin -and -not -path ./method -and -not -path ./disabled)"
 
-    cp -r -- "$origin"/* .
+        cp -r -- "$origin"/* .
+    fi
 }
 
 baz_update_plugin() {
@@ -153,7 +166,7 @@ baz_update_plugin() {
     command -v -- "$fn" >/dev/null ||
         error "Unknown method to update '$bplug': $method"
 
-    $fn "$bplug"
+    "$fn" "$bplug"
 
     cd -- "$BAZP_INITDIR"
 }
