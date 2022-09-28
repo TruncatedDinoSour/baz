@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='2.2.1'
+export BAZ_VERSION='2.2.2'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -665,7 +665,7 @@ baz_info() {
         error "Plugin type '$1' is not known"
 
     for plugin in "${@:2}"; do
-        check_plugin_state
+        [ "$1" = 'git' ] || check_plugin_state
 
         $fn "$plugin"
         eecho
