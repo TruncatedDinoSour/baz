@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='2.2.2'
+export BAZ_VERSION='2.3.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -116,12 +116,13 @@ baz_update_plugin_git() {
 
     bazp_check_env
     old_ver="$BAZP_VER"
-    baz_run_hook 'pre-update'
 
     git reset --quiet --hard
     git remote update --prune >/dev/null 2>&1
 
     if git status -uno | grep -iq behind; then
+        baz_run_hook 'pre-update'
+
         git merge -X theirs origin --quiet --all
 
         bazp_reset_env
@@ -136,9 +137,10 @@ baz_update_plugin_git() {
         else
             log "Updated '$1' from v$old_ver -> v$new_ver"
         fi
+
+        baz_run_hook 'post-update'
     fi
 
-    baz_run_hook 'post-update'
     bazp_reset_env
 }
 
@@ -154,9 +156,10 @@ baz_update_plugin_local() {
     . "$BAZP_INDEX"
     bazp_check_env
     old_ver="$BAZP_VER"
-    baz_run_hook 'pre-update'
 
     if [ -n "$(diff -rq --color=never -x .git -x disabled -x method -x origin "$origin" . 2>&1 || :)" ]; then
+        baz_run_hook 'pre-update'
+
         bazp_reset_env
         . "$local_bazp"
         bazp_check_env
@@ -178,9 +181,10 @@ baz_update_plugin_local() {
         done <<<"$(find . -not -path . -and -not -path ./origin -and -not -path ./method -and -not -path ./disabled)"
 
         cp -r -- "$origin"/* .
+
+        baz_run_hook 'post-update'
     fi
 
-    baz_run_hook 'post-update'
     bazp_reset_env
 }
 
