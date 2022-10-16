@@ -25,12 +25,7 @@ __expand_var() {
     # because I'm trying to reduce the ammount
     # of colisions
 
-    local _______baz_expand_var_delimiter_______='_______#{RHASH}_baz_expand_var_#{RHASH}_______'
-
-    local _______baz_expand_var_cmd_______
-    _______baz_expand_var_cmd_______="cat <<$_______baz_expand_var_delimiter_______"$'\n'"$(<"$1")"$'\n'"$_______baz_expand_var_delimiter_______"
-
-    eval "$_______baz_expand_var_cmd_______"
+    eval "cat <<________UNSAFE_#{RHASH}_baz_expand_var_#{RHASH}_UNSAFE________"$'\n'"$(<"$1")"$'\n'"________UNSAFE_#{RHASH}_baz_expand_var_#{RHASH}_UNSAFE________"
 }
 
 __baz_load_envs() {
@@ -129,7 +124,10 @@ __baz_load_completions() {
         [ -f "$_baz_completion" ] || continue
         __baz_vecho "Adding completion: $([ "$BAZ_DEBUG_LOAD" ] && __baz_get_base "$_baz_runner")"
 
-        complete -F "$(head -n 1 -- "$_baz_completion")" \
+        local _baz_completions_first_line
+        read -r _baz_completions_first_line <"$_baz_completion"
+
+        complete -F "$_baz_completions_first_line" \
             -o bashdefault -o default "$(__baz_get_base "$_baz_completion")"
     done
 }
@@ -157,7 +155,59 @@ __baz_load_keybinds() {
     done
 }
 
-__baz_loader() {
+# Low level plugin loading
+__baz_load_plugin() {
+    . "$1/baz.env"
+
+    local stage
+    for stage in "${__baz_stages[@]}"; do
+        __baz_vecho "Loading stage: $stage($BAZP_NAME)"
+        "$stage"
+    done
+}
+
+# High level plugin loading
+baz_load_plugin() {
+    [ ! "$1" ] && echo ' * No plugin specified' 2>&1 && return 1
+
+    local baz_plugin="#{BAZ_PLUG_DIR}/$1"
+
+    if [ ! -f "$baz_plugin/baz.env" ]; then
+        echo " * Plugin '$1' is invalid or is not installed" >&2
+        return 2
+    fi
+
+    local start
+    start="$(date +%s%N)"
+
+    __baz_load_plugin "$baz_plugin"
+
+    local milis="$(($(("$(date +%s%N)" - start)) / 1000000))"
+    echo " * Loading '$1' took: ~$milis ms (~$((milis / 1000)) s)" >&2
+}
+
+# High level multiple plugins loading
+baz_load_plugins() {
+    if [ "$#" -le 0 ]; then
+        echo ' * No plugins to load specified'
+        return 1
+    fi
+
+    local plugin ret=0
+
+    for plugin in "$@"; do
+        if ! baz_load_plugin "$plugin"; then
+            ret="$((ret + 1))"
+        fi
+    done
+
+    return "$ret"
+}
+
+# High level all plugins loader
+baz_loader() {
+    export BAZ_LOADER_VERSION='#{BAZ_VER}'
+
     local __baz_stages=(
         __baz_load_envs
         __baz_load_commands
@@ -168,8 +218,6 @@ __baz_loader() {
         __baz_load_keybinds
     )
 
-    export BAZ_LOADER_VERSION='#{BAZ_VER}'
-
     if [ -z "$(ls -A -- '#{BAZ_PLUG_DIR}' 2>/dev/null)" ] || [ ! -d '#{BAZ_PLUG_DIR}' ]; then
         __baz_vecho 'No plugin dir found'
         return 1
@@ -179,20 +227,14 @@ __baz_loader() {
 
     local plugin
     for plugin in '#{BAZ_PLUG_DIR}'/*; do
-        [ -e "$plugin/disabled" ] && continue
+        if [ -e "$plugin/disabled" ] || [ ! -f "$plugin/baz.env" ]; then
+            continue
+        fi
 
         __baz_vecho
-
-        . "$plugin/baz.env"
-
-        local stage
-        for stage in "${__baz_stages[@]}"; do
-            __baz_vecho "Loading stage: $stage($BAZP_NAME)"
-            "$stage"
-        done
-
+        __baz_load_plugin "$plugin"
         __baz_vecho
     done
 }
 
-[ "$BAZ_LOADER_ENABLED" ] && __baz_loader
+[ "$BAZ_LOADER_ENABLED" ] && baz_loader

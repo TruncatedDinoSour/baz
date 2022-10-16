@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='2.4.0'
+export BAZ_VERSION='2.5.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -434,45 +434,70 @@ baz_help() {
 
     {
         log 'Subcommands:'
-        entry 'help' 'Print help'
 
-        entry 'setup' 'Setup baz plugin manager'
-        log "Make sure you have $(get_base "$BAZ_LOADER_TEMPLATE") file in CWD" | indent
-
-        entry 'unsetup' 'Unsetup (remove) baz plugin manager'
-
-        entry 'install [method] [atoms...]' 'Install plugins'
         {
-            entry 'local' 'Local plugin from a directory'
-            log 'Atom type: path to plugin, e.g. /tmp/myplug' | indent
+            entry 'help' 'Print help'
 
-            entry 'git' 'Git plugin from git'
-            log 'Atom type: <repo url>, e.g. https://ari-web.xyz/gh/baz-example-plugin' | indent
+            entry 'setup' 'Setup baz plugin manager'
+            log "Make sure you have $(get_base "$BAZ_LOADER_TEMPLATE") file in CWD" | indent
+
+            entry 'unsetup' 'Unsetup (remove) baz plugin manager'
+
+            entry 'install [method] [atoms...]' 'Install plugins'
+            {
+                entry 'local' 'Local plugin from a directory'
+                log 'Atom type: path to plugin, e.g. /tmp/myplug' | indent
+
+                entry 'git' 'Git plugin from git'
+                log 'Atom type: <repo url>, e.g. https://ari-web.xyz/gh/baz-example-plugin' | indent
+            } | indent
+
+            entry 'uninstall [plugins...]' 'Uninstall plugins'
+            entry 'list' 'List all installed plugins'
+            entry 'update <plugins...>' 'Update all installed or specified plugins'
+
+            entry 'info [exist|local|git] [atoms...]' 'Describe (get info) about plugins'
+            {
+                entry 'exist' 'Describe existing (installed) plugin'
+                log 'Atom type: plugin name, e.g. myplug' | indent
+
+                entry 'local' 'Describe local plugin'
+                log 'Atom type: path to plugin, e.g. /tmp/myplug' | indent
+
+                entry 'git' 'Describe plugin from a git source'
+                log 'Atom type: <repo url>, e.g. https://ari-web.xyz/gh/baz-example-plugin' | indent
+            } | indent
+
+            entry 'upgrade' 'Upgrade baz'
+            log "Make sure you're in the baz git repo's directory" | indent
+
+            entry 'version' 'Print version and exit'
+
+            entry 'disable [plugins...]' 'Disable plugins'
+            entry 'enable [plugins...]' 'Enable plugins'
         } | indent
 
-        entry 'uninstall [plugins...]' 'Uninstall plugins'
-        entry 'list' 'List all installed plugins'
-        entry 'update <plugins...>' 'Update all installed or specified plugins'
+        echo
 
-        entry 'info [exist|local|git] [atoms...]' 'Describe (get info) about plugins'
+        log 'Functions:'
+
         {
-            entry 'exist' 'Describe existing (installed) plugin'
-            log 'Atom type: plugin name, e.g. myplug' | indent
+            entry 'baz_load_plugin [plugin]' 'Load a specified plugin'
+            {
+                log 'Return values'
 
-            entry 'local' 'Describe local plugin'
-            log 'Atom type: path to plugin, e.g. /tmp/myplug' | indent
+                {
+                    entry 1 'No plugin specifed'
+                    entry 2 'Invalid/non-installed plugin'
+                } | indent
+            } | indent
 
-            entry 'git' 'Describe plugin from a git source'
-            log 'Atom type: <repo url>, e.g. https://ari-web.xyz/gh/baz-example-plugin' | indent
+            entry 'baz_load_plugins [plugins...]' 'Load specified plugins'
+            log 'Returns the ammount of plugins failed' | indent
+
+            entry 'baz_loader' 'Load all plugins'
+            log 'Always should rerturn 0/nothing' | indent
         } | indent
-
-        entry 'upgrade' 'Upgrade baz'
-        log "Make sure you're in the baz git repo's directory" | indent
-
-        entry 'version' 'Print version and exit'
-
-        entry 'disable [plugins...]' 'Disable plugins'
-        entry 'enable [plugins...]' 'Enable plugins'
     } | indent >&2
 }
 
