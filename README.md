@@ -4,16 +4,16 @@
 
 # Credits
 
-- [@DannyBen](https://github.com/DannyBen) -- For creating an awesome tool for completion: https://github.com/DannyBen/completely
+-   [@DannyBen](https://github.com/DannyBen) -- For creating an awesome tool for completion: https://github.com/DannyBen/completely
 
 # Dependencies
 
-- GNU coreutils
-- GNU bash
-- Git cli
-- Linux
-- Rlwrap (optional, but it's nice for special keys)
-- Bash-completion (optional, but it's nice for well.. Completion)
+-   GNU coreutils
+-   GNU bash
+-   Git cli
+-   Linux
+-   Rlwrap (optional, but it's nice for special keys)
+-   Bash-completion (optional, but it's nice for well.. Completion)
 
 # Automatic setup
 
@@ -28,8 +28,8 @@ $ bash baz_setup.sh
 
 Configuration:
 
-- `__BASH_RUNAS`: The `sudo` program (sudo)
-- `PREFIX`: Where to install baz (/usr/bin)
+-   `__BASH_RUNAS`: The `sudo` program (sudo)
+-   `PREFIX`: Where to install baz (/usr/bin)
 
 # Plugin indexing
 
@@ -45,8 +45,8 @@ $ git clone https://github.com/TruncatedDinosour/baz
 
 1. Install the script anywhere, or even run it standalone
 
-- Running standalone means just running it
-- Installing could be done in for example `/usr/local/bin`:
+-   Running standalone means just running it
+-   Installing could be done in for example `/usr/local/bin`:
 
 ```bash
 $ su -c 'install -Dm755 baz /usr/local/bin'
@@ -81,6 +81,14 @@ This is the main loader for plugins
 $ ./scripts/comp.sh
 ```
 
+# Uninstallation
+
+Uninstall the `baz` 'binary' and then just run:
+
+```
+$ rm -rf ~/.local/share/baz
+```
+
 # Help page
 
 ```bash
@@ -105,15 +113,15 @@ $ ./scripts/comp.sh
 
 # Other docs
 
-- [Doc folder](/doc)
+-   [Doc folder](/doc)
 
 # Examples
 
-- [Examples folder](/examples)
-- [My example plugin repo](https://github.com/TruncatedDinosour/baz-example-plugin)
+-   [Examples folder](/examples)
+-   [My example plugin repo](https://github.com/TruncatedDinosour/baz-example-plugin)
 
 # Debugging
 
-- Set `BAZ_DEBUG` to any value to any value to debug the `baz` cli with tracing
-- Set `BAZ_DEBUG_LOAD` to any value to debug the loader
-- Add `set -x` before and `set +x` after the loader to enable tracing
+-   Set `BAZ_DEBUG` to any value to any value to debug the `baz` cli with tracing
+-   Set `BAZ_DEBUG_LOAD` to any value to debug the loader
+-   Add `set -x` before and `set +x` after the loader to enable tracing

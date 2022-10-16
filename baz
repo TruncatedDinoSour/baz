@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='2.3.1'
+export BAZ_VERSION='2.4.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -715,7 +715,7 @@ baz_enable() {
 main() {
     use printf return
 
-    [ "$_BAZ_NO_PRE" != true ] && . "$BAZ_PRE"
+    [ "$_BAZ_NO_PRE" != true ] && [ -f "$BAZ_PRE" ] && . "$BAZ_PRE"
 
     if [ "$BAZ_NORLWRAP" != true ] && command -v rlwrap >/dev/null; then
         use mktemp trap rlwrap return
