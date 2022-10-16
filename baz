@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='2.5.0'
+export BAZ_VERSION='2.5.1'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -30,7 +30,11 @@ log() { [ "$BAZP_NO_LOG" = true ] || ${2:-echo} " * $1"; }
 eecho() { [ "$BAZP_NO_LOG" = true ] || echo "$1" >&2; }
 unexpand_path() { echo "${1/"$HOME"/"${2:-~}"}"; }
 baz_git_clone() { git clone --quiet --recursive -- "$1" "$2"; }
-get_base() { echo "${1##*/}"; }
+
+get_base() {
+    set -- "${1%"${1##*[!/]}"}"
+    echo "${1##*/}"
+}
 
 baz_hook() {
     local hook="${BAZP_SRC:?}/hooks/$1"
@@ -54,10 +58,10 @@ baz_run_hook() {
     return 0
 }
 
-baz_sanitize() {
+__baz_sanitize() {
     read -r x
     local tmp="${x//[[:space:]\"\'~!#\\$%^&*\/()=]/}"
-    printf '%s' "${tmp//../}"
+    echo "${tmp//../}"
 }
 
 in_array() {
@@ -482,7 +486,7 @@ baz_help() {
         log 'Functions:'
 
         {
-            entry 'baz_load_plugin [plugin]' 'Load a specified plugin'
+            entry 'baz_load_plugin [plugin_or_dir]' 'Load a specified plugin'
             {
                 log 'Return values'
 
@@ -492,11 +496,14 @@ baz_help() {
                 } | indent
             } | indent
 
-            entry 'baz_load_plugins [plugins...]' 'Load specified plugins'
-            log 'Returns the ammount of plugins failed' | indent
+            entry 'baz_load_plugins [plugins_or_dirs...]' 'Load specified plugins'
+            log 'Returns the ammount of plugins which failed to be loaded' | indent
 
-            entry 'baz_loader' 'Load all plugins'
-            log 'Always should rerturn 0/nothing' | indent
+            entry 'baz_load_all' 'Load all installed plugins (high level)'
+            log 'Returns the ammount of plugins which failed to be loaded' | indent
+
+            entry 'baz_loader' 'Load all installed plugins (lower level)'
+            log 'Always should rerturn 0 or nothing' | indent
         } | indent
     } | indent >&2
 }
