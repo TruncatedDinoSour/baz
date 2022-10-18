@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='2.5.1'
+export BAZ_VERSION='2.6.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -36,6 +36,12 @@ get_base() {
     echo "${1##*/}"
 }
 
+baz_sanitize() {
+    read -r x
+    local tmp="${x//[[:space:]\"\'~!#\\$%^&*\/()=]/}"
+    echo "${tmp//../}"
+}
+
 baz_hook() {
     local hook="${BAZP_SRC:?}/hooks/$1"
 
@@ -56,12 +62,6 @@ baz_run_hook() {
     baz_hook "$1-post" 'Sourcing post-hook' source
 
     return 0
-}
-
-__baz_sanitize() {
-    read -r x
-    local tmp="${x//[[:space:]\"\'~!#\\$%^&*\/()=]/}"
-    echo "${tmp//../}"
 }
 
 in_array() {
