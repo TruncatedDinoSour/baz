@@ -14,6 +14,16 @@
 -   Linux
 -   Rlwrap (optional, but it's nice for special keys)
 -   Bash-completion (optional, but it's nice for well.. Completion)
+-   Clang(++) (optional, for `baz-cat`, although you can use any C++ compiler)
+-   Binutils (optional, for `baz-cat` if you're going to `strip` it)
+
+# Why `baz`
+
+-   Fast
+-   Easy
+-   Small
+-   Minimalistic
+-   GPL3 licensing
 
 # Automatic setup
 
@@ -21,8 +31,8 @@ This script hosted on my files site will set up
 baz automatically, but it might be unstable
 
 ```bash
-$ rm -rf -- baz_setup.sh
-$ wget 'https://files.ari-web.xyz/files/baz_setup.sh'
+$ curl -o baz_setup.sh 'https://files.ari-web.xyz/files/baz_setup.sh'
+
 $ bash baz_setup.sh
 ```
 
@@ -37,22 +47,39 @@ You can leave a link to it in the [PLUGINS.md](/PLUGINS.md) file :)
 
 # Setup
 
-0. Clone the repo
+-   Clone the repo
 
 ```bash
-$ git clone https://github.com/TruncatedDinosour/baz
+$ git clone 'https://ari-web.xyz/gh/baz'
 ```
 
-1. Install the script anywhere, or even run it standalone
+-   Install `baz-cat`
+    -   If you don't want `baz-cat` just run `export BAZ_CAT='cat'`
+    -   Also `/usr/local/bin` can be any path that is in `$PATH`
 
--   Running standalone means just running it
--   Installing could be done in for example `/usr/local/bin`:
+```sh
+$ clang++ -flto -Ofast -ffunction-sections -fdata-sections -s -std=c++98 -Wall -Wextra -Wpedantic -Wshadow -Werror -pedantic -march=native -pipe -o baz-cat baz-cat.cc
+
+# Or just `clang++ -o baz-cat baz-cat.cc` for no optimisation
+
+$ strip --strip-all --remove-section=.note --remove-section=.gnu.version --remove-section=.comment --strip-debug --strip-unneeded baz-cat
+
+# Or nothing if you don't want to strip it
+
+$ su -c 'install -Dm755 baz-cat /usr/local/bin'
+
+$ export BAZ_CAT='baz-cat'
+```
+
+-   Install the script anywhere, or even run it standalone
+    -   Running standalone means just running it
+    -   Installing could be done in for example `/usr/local/bin`:
 
 ```bash
 $ su -c 'install -Dm755 baz /usr/local/bin'
 ```
 
-2. Setup
+-   Setup
 
 ```bash
 $ baz setup
@@ -64,7 +91,7 @@ Or
 $ ./baz setup
 ```
 
-3. Add this to your `~/.bashrc`:
+-   Add this to your `~/.bashrc`:
 
 ```bash
 export BAZ_LOADER_ENABLED=true
@@ -83,10 +110,10 @@ $ ./scripts/comp.sh
 
 # Uninstallation
 
-Uninstall the `baz` 'binary' and then just run:
+Uninstall the `baz` binaries and then just run:
 
 ```
-$ rm -rf ~/.local/share/baz
+$ sudo rm -rf ~/.local/share/baz*
 ```
 
 # Help page

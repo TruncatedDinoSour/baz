@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='2.6.0'
+export BAZ_VERSION='2.7.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -321,8 +321,9 @@ baz_loader() {
         -e "$(baz_loader_q 'BAZ_DATA_DIR_SHORT' "$BAZ_DIR")" \
         -e "$(baz_loader_q 'BAZ_DATA_DIR' "$BAZ_DIR")" \
         -e "$(baz_loader_q 'BAZ_PLUG_DIR' "$BAZ_PLUGDIR")" \
-        -e "$(baz_loader_q 'RHASH' "$(head -n 10 /dev/urandom | sha512sum | awk '{print $1}')_$((RANDOM * 2))")" \
+        -e "$(baz_loader_q 'RHASH' "$(head -n 10 /dev/urandom | sha1sum | awk '{print $1}')_$((RANDOM * 2))")" \
         -e "$(baz_loader_q 'BAZ_VER' "$BAZ_VERSION")" \
+        -e "$(baz_loader_q 'BAZ_CAT' "${BAZ_CAT:-baz-cat}")" \
         "$BAZ_LOADER_TEMPLATE"
 }
 
@@ -509,7 +510,7 @@ baz_help() {
 }
 
 baz_setup() {
-    use sha512sum awk
+    use sha1sum awk
 
     if [ "$_baz_upgrade" ]; then
         _baz_new_ver=$(BAZ_NORLWRAP=true ./baz version)
@@ -587,6 +588,8 @@ baz_unsetup() {
     log "Removing baz data directory: $(unexpand_path "$BAZ_DIR")... " printf
     rm -rf -- "$BAZ_DIR"
     eecho 'done'
+
+    log 'You might also want to remove `baz-cat` if you have it, and obviously `baz`'
 }
 
 baz_install() {

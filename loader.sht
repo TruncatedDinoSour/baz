@@ -31,8 +31,13 @@ __baz_get_base() {
 }
 
 __baz_sanitize() {
-    read -r x
-    local tmp="${x//[[:space:]\"\'~!#\\$%^&*\/()=]/}"
+    # NOTE: Subshells slow shit down by a lot,
+    # the diff is around 104ms
+
+    set -- "${1%"${1##*[!/]}"}"
+    local base="${1##*/}"
+    local tmp="${base//[[:space:]\"\'~!#\\$%^&*\/()=]/}"
+
     echo "${tmp//../}"
 }
 
@@ -41,12 +46,11 @@ __expand_var() {
     # because I'm trying to reduce the ammount
     # of colisions
 
-    eval "cat <<________UNSAFE_#{RHASH}_baz_expand_var_#{RHASH}_UNSAFE________"$'\n'"$(<"$1")"$'\n'"________UNSAFE_#{RHASH}_baz_expand_var_#{RHASH}_UNSAFE________"
+    eval '#{BAZ_CAT} <<________UNSAFE_#{RHASH}_baz_expand_var_#{RHASH}_UNSAFE________'$'\n'"$(<"$1")"$'\n''________UNSAFE_#{RHASH}_baz_expand_var_#{RHASH}_UNSAFE________'
 }
 
 __baz_load_envs() {
     local _envs_dir="$plugin/$BAZP_SRC/environments"
-
     [ -d "$_envs_dir" ] || return
 
     local _baz_env
@@ -54,7 +58,7 @@ __baz_load_envs() {
         [ -f "$_baz_env" ] || continue
 
         local _env_name
-        _env_name="$(__baz_get_base "$_baz_env" | __baz_sanitize)"
+        _env_name="$(__baz_sanitize "$_baz_env")"
 
         [ "$_env_name" ] || continue
 
@@ -66,8 +70,8 @@ __baz_load_envs() {
 
 __baz_load_commands() {
     local _cmd_dir="$plugin/$BAZP_SRC/commands"
-
     [ -d "$_cmd_dir" ] || return
+
     export PATH="$PATH:$_cmd_dir"
 
     local _cmd_file
@@ -90,7 +94,7 @@ __baz_load_functions() {
         [ -f "$_baz_func" ] || continue
 
         local _func_name
-        _func_name="$(__baz_get_base "$_baz_func" | __baz_sanitize)"
+        _func_name="$(__baz_sanitize "$_baz_func")"
         [ "$_func_name" ] || continue
 
         __baz_vecho "Loading function '$_func_name'"
@@ -109,7 +113,7 @@ __baz_load_aliases() {
         [ -f "$_baz_alias" ] || continue
 
         local _alias_name
-        _alias_name="$(__baz_get_base "$_baz_alias" | __baz_sanitize)"
+        _alias_name="$(__baz_sanitize "$_baz_alias")"
         [ "$_alias_name" ] || continue
 
         __baz_vecho "Loading alias '$_alias_name'"
@@ -159,6 +163,7 @@ __baz_load_keybinds() {
     fi
 
     [ -d "$_bindings_dir" ] || return
+
     __baz_vecho "Loading contexed keybinds"
 
     local _baz_bind
