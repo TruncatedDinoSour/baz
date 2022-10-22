@@ -2,6 +2,12 @@
 
 > A lightweight plugin manager for GNU bash
 
+# Source code
+
+-   </baz> -- The plugin manager
+-   </loader.sht> -- The baz plugin loader
+-   </baz-cat-impls/> -- The `baz-cat` implementations
+
 # Credits
 
 -   [@DannyBen](https://github.com/DannyBen) -- For creating an awesome tool for completion: https://github.com/DannyBen/completely
@@ -14,7 +20,7 @@
 -   Linux
 -   Rlwrap (optional, but it's nice for special keys)
 -   Bash-completion (optional, but it's nice for well.. Completion)
--   Clang(++) (optional, for `baz-cat`, although you can use any C++ compiler)
+-   Clang(++), gcc/g++ or fasm (optional, for `baz-cat`, although you can use any that implement ion language compiler)
 -   Binutils (optional, for `baz-cat` if you're going to `strip` it)
 
 # Why `baz`
@@ -58,13 +64,9 @@ $ git clone 'https://ari-web.xyz/gh/baz'
     -   Also `/usr/local/bin` can be any path that is in `$PATH`
 
 ```sh
-$ clang++ -flto -Ofast -ffunction-sections -fdata-sections -s -std=c++98 -Wall -Wextra -Wpedantic -Wshadow -Werror -pedantic -march=native -pipe -o baz-cat baz-cat.cc
+$ ./scripts/baz-cat-build.sh asm
 
-# Or just `clang++ -o baz-cat baz-cat.cc` for no optimisation
-
-$ strip --strip-all --remove-section=.note --remove-section=.gnu.version --remove-section=.comment --strip-debug --strip-unneeded baz-cat
-
-# Or nothing if you don't want to strip it
+# Or whatever other baz-cat impl you want
 
 $ su -c 'install -Dm755 baz-cat /usr/local/bin'
 

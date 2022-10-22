@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='2.8.0'
+export BAZ_VERSION='2.9.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -796,7 +796,7 @@ main() {
     enable) baz_enable "${@:2}" ;;
     '')
         baz_help
-        exit 2
+        exit 1
         ;;
     *)
         elog "Error: subcommand '$1' is not valid"

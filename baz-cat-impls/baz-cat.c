@@ -6,7 +6,7 @@
  */
 
 int main(void) {
-    static char c;
+    char c;
 
     /*
      * This is kind of an implementation of puts lol,
