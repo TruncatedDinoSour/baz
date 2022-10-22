@@ -35,8 +35,9 @@ __baz_sanitize() {
     # the diff is around 104ms
 
     set -- "${1%"${1##*[!/]}"}"
-    local base="${1##*/}"
-    local tmp="${base//[[:space:]\"\'~!#\\$%^&*\/()=]/}"
+
+    local tmp="${1##*/}"
+    tmp="${tmp//[[:space:]\"\'~!#\\$%^&*\/()=]/}"
 
     echo "${tmp//../}"
 }
@@ -99,8 +100,8 @@ __baz_load_functions() {
 
         __baz_vecho "Loading function '$_func_name'"
         eval "function $_func_name() {
-                      $(<"$_baz_func")
-                  }"
+            $(<"$_baz_func")
+        }"
     done
 }
 

@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='2.7.0'
+export BAZ_VERSION='2.8.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -27,6 +27,7 @@ export BAZ_LOADER_TEMPLATE="$BAZP_INITDIR/loader.sht"
 
 entry() { printf " + %-35s%s\n" "$1" "$2"; }
 log() { [ "$BAZP_NO_LOG" = true ] || ${2:-echo} " * $1"; }
+elog() { log "$1" >&2; }
 eecho() { [ "$BAZP_NO_LOG" = true ] || echo "$1" >&2; }
 unexpand_path() { echo "${1/"$HOME"/"${2:-~}"}"; }
 baz_git_clone() { git clone --quiet --recursive -- "$1" "$2"; }
@@ -89,7 +90,7 @@ use() {
 }
 
 error() {
-    log "Error: $1" >&2
+    elog "Error: $1"
     exit 1
 }
 
@@ -435,7 +436,7 @@ bazp_install_gits() {
 baz_help() {
     [ "$BAZP_NO_LOG" = true ] && return
 
-    log "Help for baz v$BAZ_VERSION"
+    elog "Help for baz v$BAZ_VERSION"
 
     {
         log 'Subcommands:'
@@ -671,7 +672,7 @@ baz_list() {
     {
         while read -r dir; do
             _plugent="$(get_base "$dir")"
-            [ -f "$dir/disabled" ] && _plugent+=' [DISABLED]' >&2
+            [ -f "$dir/disabled" ] && _plugent+=' [DISABLED]'
 
             log "$_plugent"
         done <<<"$(find "${BAZ_PLUGDIR:?}" -maxdepth 1 -not -path "${BAZ_PLUGDIR:?}" -type d)"
@@ -771,17 +772,17 @@ main() {
     if [ -f "$BAZ_CONF" ]; then
         . "$BAZ_CONF"
     else
-        log 'Warning: no config found'
+        elog 'Warning: no config found'
     fi
 
     if [ "$BAZ_LOADER_VERSION" ] && [ "$BAZ_LOADER_VERSION" != "$BAZ_VERSION" ]; then
-        log "Baz loader version ($BAZ_LOADER_VERSION) does not match current version ($BAZ_VERSION)"
+        elog "Baz loader version ($BAZ_LOADER_VERSION) does not match current version ($BAZ_VERSION)"
     fi
 
     BAZP_NO_LOG=true bazp_reset_env
 
-    case "$1" in
-    help) baz_help ;;
+    case "${1//[[:space:]]/}" in
+    help) baz_help 2>&1 ;;
     setup) baz_setup ;;
     unsetup) baz_unsetup ;;
     install) baz_install "$2" "${@:3}" ;;
@@ -793,8 +794,12 @@ main() {
     version) echo "v$BAZ_VERSION" ;;
     disable) baz_disable "${@:2}" ;;
     enable) baz_enable "${@:2}" ;;
+    '')
+        baz_help
+        exit 2
+        ;;
     *)
-        log "Error: subcommand '$1' is not valid"
+        elog "Error: subcommand '$1' is not valid"
         baz_help 2>&1 | indent >&2
         exit 1
         ;;
