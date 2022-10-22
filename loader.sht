@@ -51,7 +51,7 @@ __expand_var() {
 }
 
 __baz_load_envs() {
-    local _envs_dir="$plugin/$BAZP_SRC/environments"
+    local _envs_dir="$1/environments"
     [ -d "$_envs_dir" ] || return
 
     local _baz_env
@@ -70,7 +70,7 @@ __baz_load_envs() {
 }
 
 __baz_load_commands() {
-    local _cmd_dir="$plugin/$BAZP_SRC/commands"
+    local _cmd_dir="$1/commands"
     [ -d "$_cmd_dir" ] || return
 
     export PATH="$PATH:$_cmd_dir"
@@ -87,7 +87,7 @@ __baz_load_commands() {
 }
 
 __baz_load_functions() {
-    _func_dir="$plugin/$BAZP_SRC/functions"
+    _func_dir="$1/functions"
     [ -d "$_func_dir" ] || return
 
     local _baz_func
@@ -106,7 +106,7 @@ __baz_load_functions() {
 }
 
 __baz_load_aliases() {
-    local _alias_dir="$plugin/$BAZP_SRC/aliases"
+    local _alias_dir="$1/aliases"
     [ -d "$_alias_dir" ] || return
 
     local _baz_alias
@@ -125,7 +125,7 @@ __baz_load_aliases() {
 }
 
 __baz_load_runners() {
-    local _runners_dir="$plugin/$BAZP_SRC/runners"
+    local _runners_dir="$1/runners"
     [ -d "$_runners_dir" ] || return
 
     local _baz_runner
@@ -137,7 +137,7 @@ __baz_load_runners() {
 }
 
 __baz_load_completions() {
-    local _completions_dir="$plugin/$BAZP_SRC/completions"
+    local _completions_dir="$1/completions"
     [ -d "$_completions_dir" ] || return
 
     local _baz_completion
@@ -154,7 +154,7 @@ __baz_load_completions() {
 }
 
 __baz_load_keybinds() {
-    local _keybinds_dir="$plugin/$BAZP_SRC/keybinds"
+    local _keybinds_dir="$1/keybinds"
     local _all_keybinds="$_keybinds_dir/all.rl"
     local _bindings_dir="$_keybinds_dir/bindings"
 
@@ -181,10 +181,12 @@ __baz_load_keybinds() {
 __baz_load_plugin() {
     . "$1/baz.env"
 
-    local stage
+    local stage p
+    p="$1/$BAZP_SRC"
+
     for stage in "${__BAZ_STAGES[@]}"; do
         __baz_vecho "Loading stage: $stage($BAZP_NAME)"
-        "$stage"
+        "$stage" "$p"
     done
 }
 
@@ -247,7 +249,6 @@ baz_loader() {
 
     __baz_vecho 'Loading baz from data dir: #{BAZ_DATA_DIR_SHORT}'
 
-    local plugin
     for plugin in '#{BAZ_PLUG_DIR}'/*; do
         if [ -e "$plugin/disabled" ] || [ ! -f "$plugin/baz.env" ]; then
             continue

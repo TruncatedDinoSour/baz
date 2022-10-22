@@ -3,22 +3,24 @@ segment readable executable
 
 include "includes/libbaz.asm"
 
-;; Code
 _start:
-    ;; unsigned read_bytes =
+    ;; int read_bytes =
     mov rax, SYS_read       ;; SYS_read(
     mov rdi, STDIN_FILENO   ;;     fd=stdin,
-    mov rsi, c              ;;     buf=&c,
-    mov rdx, 1              ;;     count=1
+    mov rsi, buffer         ;;     buf=&buffer,
+    mov rdx, BUF_SIZE       ;;     count=BUF_SIZE
     syscall                 ;; );
+
+    mov ebx, eax            ;; read_bytes_real = read_bytes;
+                            ;; // Because the buffer is not always full
 
     cmp eax, 0              ;; if (read_bytes == 0)
     je .exit                ;;     goto .exit; // break
 
     mov rax, SYS_write      ;; SYS_write(
     mov rdi, STDOUT_FILENO  ;;     fd=stdout,
-    mov rsi, c              ;;     buf=&c,
-    mov rdx, 1              ;;     count=1,
+    mov rsi, buffer         ;;     buf=&buffer,
+    movsxd rdx, ebx         ;;     count=(unsigned)bytes_read_real,
     syscall                 ;; );
 
     jmp _start              ;; LOOP_AGAIN;
@@ -29,4 +31,4 @@ _start:
     syscall                 ;; );
 
 segment readable writable
-    c: rb 1                 ;; char c;
+    buffer: rb BUF_SIZE     ;; char buffer[BUF_SIZE];
