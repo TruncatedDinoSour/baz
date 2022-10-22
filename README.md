@@ -4,9 +4,9 @@
 
 # Source code
 
--   </baz> -- The plugin manager
--   </loader.sht> -- The baz plugin loader
--   </baz-cat-impls/> -- The `baz-cat` implementations
+-   [/baz](/baz) -- The plugin manager
+-   [/loader.sht](/loader.sht) -- The baz plugin loader
+-   [/baz-cat-impls/](/baz-cat-impls/) -- The `baz-cat` implementations
 
 # Credits
 
