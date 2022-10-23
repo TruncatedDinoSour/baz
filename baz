@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='3.0.2'
+export BAZ_VERSION='3.1.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -486,6 +486,7 @@ baz_help() {
         echo
 
         log 'Functions:'
+        log "Note: If you want to disable disabled plugins in functions set the BAZ_NO_DISABLED env var to 1" | indent
 
         {
             entry 'baz_load_plugin [plugin_or_dir]' 'Load a specified plugin'

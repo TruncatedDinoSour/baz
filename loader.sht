@@ -190,16 +190,29 @@ __baz_load_plugin() {
     done
 }
 
+baz_plugdir_empty() { [ ! -d '#{BAZ_PLUG_DIR}' ] || [ -z "$(ls -A -- '#{BAZ_PLUG_DIR}' 2>/dev/null)" ]; }
+baz_log() { echo " * $1"; }
+
 # High level plugin loading
 baz_load_plugin() {
-    [ ! "$1" ] && echo ' * No plugin specified' 2>&1 && return 1
+    if baz_plugdir_empty; then
+        baz_log 'No plugin dir found'
+        return 1
+    fi
+
+    [ ! "$1" ] && baz_log 'No plugin specified' 2>&1 && return 1
 
     local baz_plugin="$1" baz_plugin_name
     [ -d "$1" ] || baz_plugin="#{BAZ_PLUG_DIR}/$1"
     baz_plugin_name="$(__baz_get_base "$baz_plugin")"
 
+    [ "$BAZ_NO_DISABLED" ] &&
+        [ -e "$baz_plugin/disabled" ] &&
+        baz_log "'$baz_plugin_name' is disabled -- skipping" &&
+        return
+
     if [ ! -f "$baz_plugin/baz.env" ]; then
-        echo " * Plugin '$baz_plugin_name' is invalid or is not installed" >&2
+        baz_log "Plugin '$baz_plugin_name' is invalid or is not installed" >&2
         return 2
     fi
 
@@ -208,13 +221,13 @@ baz_load_plugin() {
 
     __baz_load_plugin "$baz_plugin"
 
-    echo " * Loading '$baz_plugin_name' took: ~$(($(("$(date +%s%N)" - start)) / 1000000)) ms" >&2
+    baz_log "Loading '$baz_plugin_name' took: ~$(($(("$(date +%s%N)" - start)) / 1000000)) ms" >&2
 }
 
 # High level multiple plugins loading
 baz_load_plugins() {
     if [ "$#" -le 0 ]; then
-        echo ' * No plugins to load specified' >&2
+        baz_log 'No plugins to load specified' >&2
         return 1
     fi
 
@@ -235,14 +248,14 @@ baz_load_all() {
     baz_load_plugins '#{BAZ_PLUG_DIR}'/*
     local ret="$?"
 
-    echo " * Loading all plugins took: ~$(($(("$(date +%s%N)" - start)) / 1000000)) ms" >&2
+    baz_log "Loading all plugins took: ~$(($(("$(date +%s%N)" - start)) / 1000000)) ms" >&2
 
     return "$ret"
 }
 
 # Mid level all plugins loader
 baz_loader() {
-    if [ -z "$(ls -A -- '#{BAZ_PLUG_DIR}' 2>/dev/null)" ] || [ ! -d '#{BAZ_PLUG_DIR}' ]; then
+    if baz_plugdir_empty; then
         __baz_vecho 'No plugin dir found'
         return 1
     fi
