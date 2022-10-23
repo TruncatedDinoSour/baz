@@ -8,19 +8,18 @@ _start:
     mov rax, SYS_read       ;; SYS_read(
     mov rdi, STDIN_FILENO   ;;     fd=stdin,
     mov rsi, buffer         ;;     buf=&buffer,
-    mov rdx, BUF_SIZE       ;;     count=BUF_SIZE
+    mov rdx, BUF_SIZE       ;;     count=BUF_SIZE,
     syscall                 ;; );
 
-    mov ebx, eax            ;; read_bytes_real = read_bytes;
-                            ;; // Because the buffer is not always full
+    test eax, eax           ;; if (read_bytes == 0)
+    jz .exit                ;;     goto .exit;
 
-    cmp eax, 0              ;; if (read_bytes == 0)
-    je .exit                ;;     goto .exit; // break
+    movsxd rdx, eax         ;; int write_count = read_bytes;
 
     mov rax, SYS_write      ;; SYS_write(
     mov rdi, STDOUT_FILENO  ;;     fd=stdout,
     mov rsi, buffer         ;;     buf=&buffer,
-    movsxd rdx, ebx         ;;     count=(unsigned)bytes_read_real,
+                            ;;     count=write_count,
     syscall                 ;; );
 
     jmp _start              ;; LOOP_AGAIN;
