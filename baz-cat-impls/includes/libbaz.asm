@@ -9,4 +9,7 @@ define STDOUT_FILENO 1
 
 define EXIT_OK       0
 
-define BUF_SIZE      262144  ;; 256 KB
+define BUF_SIZE      64  ;; You really don't need much, this allocates 64 bytes
+                         ;; in the memory, baz-cat usually gets called with smaller
+                         ;; rather than bigger input, if expected the other way around
+                         ;; I'd suggest using like 256 KB, or in this case -- 262144 bytes

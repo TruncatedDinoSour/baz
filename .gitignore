@@ -1,3 +1,5 @@
 .ccls-cache/
+.mypy_cache/
+__pycache__/
 /a.out
 /baz-cat

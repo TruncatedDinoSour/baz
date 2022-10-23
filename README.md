@@ -73,6 +73,12 @@ $ su -c 'install -Dm755 baz-cat /usr/local/bin'
 $ export BAZ_CAT='baz-cat'
 ```
 
+-   If you want logging support run this:
+
+```sh
+export BAZ_LOGGING_ENABLED=1
+```
+
 -   Install the script anywhere, or even run it standalone
     -   Running standalone means just running it
     -   Installing could be done in for example `/usr/local/bin`:
@@ -153,4 +159,5 @@ $ ./scripts/comp.sh
 
 -   Set `BAZ_DEBUG` to any value to any value to debug the `baz` cli with tracing
 -   Set `BAZ_DEBUG_LOAD` to any value to debug the loader
+    -   This only works if `BAZ_LOGGING_ENABLED` was set during setup time
 -   Add `set -x` before and `set +x` after the loader to enable tracing
