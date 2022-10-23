@@ -5,8 +5,8 @@ include "includes/libbaz.asm"
 
 _start:
     ;; int read_bytes =
-    mov rax, SYS_read       ;; SYS_read(
-    mov rdi, STDIN_FILENO   ;;     fd=stdin,
+    xor rax, rax            ;; SYS_read[0](
+    xor rdi, rdi            ;;     fd=STDIN_FILENO[0],
     mov rsi, buffer         ;;     buf=&buffer,
     mov rdx, BUF_SIZE       ;;     count=BUF_SIZE,
     syscall                 ;; );
@@ -26,7 +26,7 @@ _start:
 
 .exit:
     mov rax, SYS_exit       ;; SYS_exit(
-    mov rdi, EXIT_OK        ;;     status=EXIT_OK,
+    xor rdi, rdi            ;;     status=EXIT_OK[0],
     syscall                 ;; );
 
 segment readable writable

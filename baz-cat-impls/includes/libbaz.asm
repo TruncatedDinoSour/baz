@@ -9,4 +9,4 @@ define STDOUT_FILENO 1
 
 define EXIT_OK       0
 
-define BUF_SIZE      147456  ;; 144 KB
+define BUF_SIZE      262144  ;; 256 KB
