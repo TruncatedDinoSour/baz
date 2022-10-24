@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='3.2.0'
+export BAZ_VERSION='3.2.1'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -353,13 +353,13 @@ baz_loader() {
         -e "$(baz_loader_q 'BAZ_CAT' "${BAZ_CAT:-baz-cat}")" \
         -e "$(baz_loader_q 'BAZ_LOADER_FN' "$(baz_loader_logging_fn)")" \
         -e "$(baz_loader_q 'BAZ_LOG' "$(baz_loader_baz_log)")" \
-        -e '/^\s*#/d; /^\s*$/d; s/^\s*//g; s/_baz_vecho/__l/g' \
+        -e '/^\s*#/d; /^\s*$/d; s/^\s*//g; s/_baz_vecho/._l/g' \
         "$BAZ_LOADER_TEMPLATE")"
 
     printf '%s' "$loader" | sed -e "$(echo "$loader" | grep '^_.*\(\) {$' |
         awk '{print $1}' |
         while read -r func_name; do
-            echo "s/$(head -c -3 <<<"${func_name}")/__$idx/g;"
+            echo "s/$(head -c -3 <<<"${func_name}")/._$idx/g;"
             idx="$((idx + 1))"
         done)"
 }
