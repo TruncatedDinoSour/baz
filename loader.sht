@@ -8,34 +8,18 @@
 
 # All names starting with _ will be mangled
 
-export BAZ_LOADER_VERSION='#{BAZ_VER}'
+# Seperating the $'\n' into a var seems to boost performance
+# by a bit
+export BAZ_LOADER_VERSION='#{BAZ_VER}' BAZ_NL=$'\n'
 
 #{BAZ_LOADER_FN}
 
 _baz_get_base() {
-    set -- "${1%"${1##*[!/]}"}"
-    echo "${1##*/}"
-}
-
-_baz_sanitize() {
-    # NOTE: $(Subshells) slow shit down by a lot,
-    #       the diff is around 104ms, although this makes
-    #       things less maintainable [_baz_get_base]
+    local -n _r="$1"
+    shift 1
 
     set -- "${1%"${1##*[!/]}"}"
-
-    local tmp="${1##*/}"
-    tmp="${tmp//[[:space:]\"\'~!#\\$%^&*\/()=]/}"
-
-    echo "${tmp//../}"
-}
-
-_expand_var() {
-    # This code is extremely painful
-    # because I'm trying to reduce the ammount
-    # of colisions
-
-    eval '#{BAZ_CAT}<<#{BAZ_RDELIM}'$'\n'"$(<"$1")"$'\n''#{BAZ_RDELIM}'
+    printf -v _r %s "${1##*/}"
 }
 
 _baz_load_envs() {
@@ -47,12 +31,11 @@ _baz_load_envs() {
     for _baz_env in "$_envs_dir"/*; do
         [ -f "$_baz_env" ] || continue
 
-        _env_name="$(_baz_sanitize "$_baz_env")"
-        [ "$_env_name" ] || continue
+        _baz_get_base _env_name "$_baz_env"
 
         #{BAZ_LOG} "Loading env variable '$_env_name'"
 
-        export "$_env_name"="$(_expand_var "$_baz_env")"
+        export "$_env_name"="$(eval '#{BAZ_CAT}<<#{BAZ_RDELIM}'"$BAZ_NL$(<"$_baz_env")$BAZ_NL"'#{BAZ_RDELIM}')"
     done
 }
 
@@ -83,10 +66,10 @@ _baz_load_functions() {
     for _baz_func in "$_func_dir"/*; do
         [ -f "$_baz_func" ] || continue
 
-        _func_name="$(_baz_sanitize "$_baz_func")"
-        [ "$_func_name" ] || continue
+        _baz_get_base _func_name "$_baz_func"
 
         #{BAZ_LOG} "Loading function '$_func_name'"
+
         eval "function $_func_name(){
             $(<"$_baz_func")
         }"
@@ -102,7 +85,7 @@ _baz_load_aliases() {
     for _baz_alias in "$_alias_dir"/*; do
         [ -f "$_baz_alias" ] || continue
 
-        _alias_name="$(_baz_sanitize "$_baz_alias")"
+        _baz_get_base _alias_name "$_baz_alias"
         [ "$_alias_name" ] || continue
 
         #{BAZ_LOG} "Loading alias '$_alias_name'"
@@ -120,7 +103,7 @@ _baz_load_runners() {
 
     for _baz_runner in "$_runners_dir"/*; do
         [ -f "$_baz_runner" ] || continue
-        #{BAZ_LOG} "Starting runner: $(_baz_get_base "$_baz_runner")"
+        #{BAZ_LOG} "Starting runner: '$_baz_runner'"
         source "$_baz_runner"
     done
 }
@@ -133,12 +116,13 @@ _baz_load_completions() {
 
     for _baz_completion in "$_completions_dir"/*; do
         [ -f "$_baz_completion" ] || continue
-        #{BAZ_LOG} "Adding completion: $([ "$BAZ_DEBUG_LOAD" ] && _baz_get_base "$_baz_runner")"
+        #{BAZ_LOG} "Adding completion: '$_baz_runner'"
 
         read -r _baz_completions_first_line <"$_baz_completion"
 
+        _baz_get_base _baz_completion
         complete -F "$_baz_completions_first_line" \
-            -o bashdefault -o default "$(_baz_get_base "$_baz_completion")"
+            -o bashdefault -o default "$_baz_completion"
     done
 }
 
@@ -159,7 +143,7 @@ _baz_load_keybinds() {
     #{BAZ_LOG} "Loading contexed keybinds"
 
     for _baz_bind in "$_bindings_dir"/*; do
-        _baz_bind_ctx="$(_baz_get_base "$_baz_bind")"
+        _baz_get_base _baz_bind_ctx "$_baz_bind"
 
         #{BAZ_LOG} "Loading keybinds for context: $_baz_bind_ctx"
         bind -m "$_baz_bind_ctx" -f "$_baz_bind"
@@ -173,7 +157,7 @@ _baz_load_plugin() {
     local p="$1/$BAZP_SRC"
 
     # Having everything inline helps with performance,
-    # although reduces maintainablity, same as _baz_sanitize()
+    # although reduces maintainablity
 
     _baz_load_envs "$p"
     _baz_load_commands "$p"
@@ -199,7 +183,7 @@ baz_load_plugin() {
 
     local baz_plugin="$1" baz_plugin_name
     [ -d "$1" ] || baz_plugin="#{BAZ_PLUG_DIR}/$1"
-    baz_plugin_name="$(_baz_get_base "$baz_plugin")"
+    _baz_get_base baz_plugin_name "$baz_plugin"
 
     [ "$BAZ_NO_DISABLED" ] &&
         [ -e "$baz_plugin/disabled" ] &&
