@@ -9,7 +9,7 @@
 # All names starting with _ will be mangled
 
 # Seperating the $'\n' into a var seems to boost performance
-# by a bit
+# by a bit            ->               vvvvvvvvvvvv
 export BAZ_LOADER_VERSION='#{BAZ_VER}' BAZ_NL=$'\n'
 
 #{BAZ_LOADER_FN}
@@ -25,7 +25,7 @@ _baz_get_base() {
 _baz_load_envs() {
     #{BAZ_LOG} "Loading environment variables from '$BAZP_NAME'"
 
-    local _envs_dir="$1/environments" _baz_env _env_name
+    local _envs_dir="$1/environments" _baz_env _env_name _env
     [ -d "$_envs_dir" ] || return
 
     for _baz_env in "$_envs_dir"/*; do
@@ -35,7 +35,10 @@ _baz_load_envs() {
 
         #{BAZ_LOG} "Loading env variable '$_env_name'"
 
-        export "$_env_name"="$(eval '#{BAZ_CAT}<<#{BAZ_RDELIM}'"$BAZ_NL$(<"$_baz_env")$BAZ_NL"'#{BAZ_RDELIM}')"
+        # To avoid forking, I'm using mapfile
+        mapfile -d '' _env <"$_baz_env"
+        export "$_env_name"="$(eval '#{BAZ_CAT}<<#{BAZ_RDELIM}'"$BAZ_NL${_env[*]}$BAZ_NL"'#{BAZ_RDELIM}')"
+        #                    ^^~~~~ We need to get rid of fork this, or at least reduce it... somehow   ^
     done
 }
 
@@ -49,6 +52,7 @@ _baz_load_commands() {
 
     for _cmd_file in "$_cmd_dir"/*; do
         [ -f "$_cmd_file" ] || continue
+        #{BAZ_LOG} "Loading command: $_cmd_file"
 
         if [ ! -x "$_cmd_file" ]; then
             #{BAZ_LOG} "Making '$_cmd_file' executable"
@@ -60,7 +64,7 @@ _baz_load_commands() {
 _baz_load_functions() {
     #{BAZ_LOG} "Loading functions from '$BAZP_NAME'"
 
-    local _func_dir="$1/functions" _baz_func _func_name
+    local _func_dir="$1/functions" _baz_func _func_name _func
     [ -d "$_func_dir" ] || return
 
     for _baz_func in "$_func_dir"/*; do
@@ -70,8 +74,10 @@ _baz_load_functions() {
 
         #{BAZ_LOG} "Loading function '$_func_name'"
 
+        mapfile -d "$BAZ_NL" _func <"$_baz_func"
+
         eval "function $_func_name(){
-            $(<"$_baz_func")
+            ${_func[*]}
         }"
     done
 }
@@ -79,7 +85,7 @@ _baz_load_functions() {
 _baz_load_aliases() {
     #{BAZ_LOG} "Loading aliases from '$BAZP_NAME'"
 
-    local _alias_dir="$1/aliases" _baz_alias _alias_name
+    local _alias_dir="$1/aliases" _baz_alias _alias_name _alias
     [ -d "$_alias_dir" ] || return
 
     for _baz_alias in "$_alias_dir"/*; do
@@ -90,8 +96,10 @@ _baz_load_aliases() {
 
         #{BAZ_LOG} "Loading alias '$_alias_name'"
 
+        mapfile -t _alias <"$_baz_alias"
+
         # shellcheck disable=SC2139
-        alias "$_alias_name"="$(<"$_baz_alias")"
+        alias "$_alias_name"="${_alias[*]}"
     done
 }
 
