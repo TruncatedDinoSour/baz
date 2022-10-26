@@ -38,7 +38,7 @@ _baz_load_envs() {
         # To avoid forking, I'm using mapfile
         mapfile -d '' _env <"$_baz_env"
         export "$_env_name"="$(eval '#{BAZ_CAT}<<#{BAZ_RDELIM}'"$BAZ_NL${_env[*]}$BAZ_NL"'#{BAZ_RDELIM}')"
-        #                    ^^~~~~ We need to get rid of fork this, or at least reduce it... somehow   ^
+        #                    ^^~~~~ We need to get rid of fork this, or at least reduce calls to it... somehow
     done
 }
 
@@ -74,7 +74,7 @@ _baz_load_functions() {
 
         #{BAZ_LOG} "Loading function '$_func_name'"
 
-        mapfile -d "$BAZ_NL" _func <"$_baz_func"
+        mapfile -d '' _func <"$_baz_func"
 
         eval "function $_func_name(){
             ${_func[*]}
