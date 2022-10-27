@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='4.1.0'
+export BAZ_VERSION='4.1.1'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -440,6 +440,12 @@ bazp_install_git() {
     use git local
 
     _plugdir="/tmp/$(get_base "$1")"
+
+    if [ -e "$_plugdir" ]; then
+        log "Removing $1... " printf
+        rm -rf -- "$_plugdir"
+        eecho 'done'
+    fi
 
     log "Cloning repository: $1... " printf
     baz_git_clone "$1" "$_plugdir"

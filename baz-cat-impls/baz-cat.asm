@@ -5,28 +5,28 @@ include "includes/libbaz.asm"
 
 _start:
     ;; int read_bytes =
-    xor rax, rax            ;; SYS_read[0](
-    xor rdi, rdi            ;;     fd=STDIN_FILENO[0],
-    mov rsi, buffer         ;;     buf=&buffer,
-    mov rdx, BUF_SIZE       ;;     count=BUF_SIZE,
+    xor eax, eax            ;; SYS_read[0](
+    xor edi, edi            ;;     fd=STDIN_FILENO[0],
+    mov esi, buffer         ;;     buf=&buffer,
+    mov edx, BUF_SIZE       ;;     count=BUF_SIZE,
     syscall                 ;; );
 
     test eax, eax           ;; if (read_bytes == 0)
     jz .exit                ;;     goto .exit;
 
-    movsxd rdx, eax         ;; int write_count = read_bytes;
+    mov edx, eax            ;; int write_count = read_bytes;
 
-    mov rax, SYS_write      ;; SYS_write(
-    mov rdi, STDOUT_FILENO  ;;     fd=stdout,
-    mov rsi, buffer         ;;     buf=&buffer,
+    mov eax, SYS_write      ;; SYS_write(
+    mov edi, STDOUT_FILENO  ;;     fd=stdout,
+    mov esi, buffer         ;;     buf=&buffer,
                             ;;     count=write_count,
     syscall                 ;; );
 
     jmp _start              ;; LOOP_AGAIN;
 
 .exit:
-    mov rax, SYS_exit       ;; SYS_exit(
-    xor rdi, rdi            ;;     status=EXIT_OK[0],
+    mov eax, SYS_exit       ;; SYS_exit(
+    xor edi, edi            ;;     status=EXIT_OK[0],
     syscall                 ;; );
 
 segment readable writable
