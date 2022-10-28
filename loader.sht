@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# #{_} => Preprocessor directives
+
 # Before anything, I'm very sorry
 # about these `local` things, bash
 # is sometimes trash, this is one
@@ -36,9 +38,12 @@ _baz_load_envs() {
         #{BAZ_LOG} "Loading env variable '$_env_name'"
 
         # To avoid forking, I'm using mapfile
-        mapfile -d '' _env <"$_baz_env"
-        export "$_env_name"="$(eval '#{BAZ_CAT}<<#{BAZ_RDELIM}'"$BAZ_NL${_env[*]}$BAZ_NL"'#{BAZ_RDELIM}')"
-        #                    ^^~~~~ We need to get rid of fork this, or at least reduce calls to it... somehow
+        #{BAZ_MFD} _env <"$_baz_env"
+
+        # Could we optimise these mapfile calls without subshells? Ref ^
+        eval '#{BAZ_MFD} _env<<#{BAZ_RDELIM}'"$BAZ_NL""${_env[*]}"'#{BAZ_RDELIM}'
+
+        export "$_env_name"="${_env[*]%"$BAZ_NL"}"
     done
 }
 
@@ -74,7 +79,7 @@ _baz_load_functions() {
 
         #{BAZ_LOG} "Loading function '$_func_name'"
 
-        mapfile -d '' _func <"$_baz_func"
+        #{BAZ_MFD} _func <"$_baz_func"
 
         eval "function $_func_name(){
             ${_func[*]}
@@ -259,6 +264,8 @@ baz_loader() {
         _baz_load_plugin "$plugin"
         #{BAZ_LOG}
     done
+
+    #{BAZ_NOP}
 }
 
 [ "$BAZ_LOADER_ENABLED" ] && baz_loader

@@ -6,7 +6,6 @@
 
 -   [/baz](/baz) -- The plugin manager
 -   [/loader.sht](/loader.sht) -- The baz plugin loader
--   [/baz-cat-impls/](/baz-cat-impls/) -- The `baz-cat` implementations
 
 # Credits
 
@@ -20,8 +19,6 @@
 -   Linux
 -   Rlwrap (optional, but it's nice for special keys)
 -   Bash-completion (optional, but it's nice for well.. Completion)
--   Clang(++), gcc/g++ or fasm (optional, for `baz-cat`, although you can use any that implement ion language compiler)
--   Binutils (optional, for `baz-cat` if you're going to `strip` it)
 
 # Why `baz`
 
@@ -59,24 +56,16 @@ You can leave a link to it in the [PLUGINS.md](/PLUGINS.md) file :)
 $ git clone 'https://ari-web.xyz/gh/baz'
 ```
 
--   Install `baz-cat`
-    -   If you don't want `baz-cat` just run `export BAZ_CAT='cat'`
-    -   Also `/usr/local/bin` can be any path that is in `$PATH`
-
-```sh
-$ ./scripts/baz-cat-build.sh asm
-
-# Or whatever other baz-cat impl you want
-
-$ su -c 'install -Dm755 baz-cat /usr/local/bin'
-
-$ export BAZ_CAT='baz-cat'
-```
-
--   If you want logging support run this:
+-   If you want debug logging support in the loader run this:
 
 ```sh
 export BAZ_LOGGING_ENABLED=1
+```
+
+-   If non-zero (it's normal dw) exit codes bother you on the loader run this:
+
+```sh
+export BAZ_ENSURE_OK=1
 ```
 
 -   Install the script anywhere, or even run it standalone
