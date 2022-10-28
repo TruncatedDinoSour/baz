@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='5.0.0'
+export BAZ_VERSION='5.1.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -354,7 +354,7 @@ baz_loader() {
         -e "$(baz_loader_q 'BAZ_LOG' "$(baz_loader_baz_log)")" \
         -e "$(baz_loader_q 'BAZ_NOP' "$([ "$BAZ_ENSURE_OK" ] && echo ':')")" \
         -e '/^\s*#/d; /^\s*$/d; s/^\s*//g; s/_baz_vecho/._l/g' \
-        -e 's/ </</g; s/ {/{/g; s/ >/>/g; s/ \&\& /\&\&/g; s/ || /||/g; s/; /;/g' \
+        -e 's/ </</g; s/ >/>/g; s/ \&\& /\&\&/g; s/ || /||/g; s/; /;/g' \
         "$BAZ_LOADER_TEMPLATE")"
 
     printf '%s' "$loader" | sed -e "$(echo "$loader" | grep '^_.*\(\) {$' |

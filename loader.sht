@@ -8,7 +8,7 @@
 # example of bash handling clearly
 # local variables like globals
 
-# All names starting with _ will be mangled
+# All function names starting with _ will be mangled
 
 # Seperating the $'\n' into a var seems to boost performance
 # by a bit            ->               vvvvvvvvvvvv
