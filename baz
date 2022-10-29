@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='5.1.0'
+export BAZ_VERSION='5.1.1'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -25,7 +25,7 @@ export BAZ_LOADER_TEMPLATE="$BAZP_INITDIR/loader.sht"
 
 # Helpers
 
-entry() { printf " + %-35s%s\n" "$1" "$2"; }
+entry() { printf " + %-40s%s\n" "$1" "$2"; }
 log() { [ "$BAZP_NO_LOG" = true ] || ${2:-echo} " * $1"; }
 elog() { log "$1" >&2; }
 eecho() { [ "$BAZP_NO_LOG" = true ] || echo "$1" >&2; }
@@ -444,7 +444,7 @@ bazp_install_git() {
 
     if [ -e "$_plugdir" ]; then
         log "Removing $1... " printf
-        rm -rf -- "$_plugdir"
+        rm -Ir -- "$_plugdir" || error 'canceled'
         eecho 'done'
     fi
 
@@ -549,7 +549,7 @@ baz_help() {
             log 'Returns the ammount of plugins which failed to be loaded' | indent
 
             entry 'baz_loader' 'Load all installed plugins (lower level)'
-            log 'Always should rerturn 0 or nothing' | indent
+            log 'Can return anything' | indent
         } | indent
     } | indent >&2
 }
