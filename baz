@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='5.1.1'
+export BAZ_VERSION='5.2.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -18,8 +18,10 @@ export BAZP_ENV=(
 )
 export BAZP_INDEX='baz.env'
 
-BAZP_INITDIR="$(pwd)"
+BAZP_INITDIR="$("${PWDCMD:-pwd}")"
 export BAZP_INITDIR
+
+export TMPDIR="${TMPDIR:-/tmp}"
 
 export BAZ_LOADER_TEMPLATE="$BAZP_INITDIR/loader.sht"
 
@@ -77,7 +79,7 @@ in_array() {
 }
 
 indent() {
-    while IFS="$(printf '\n')" read -r line; do
+    while IFS=$'\n' read -r line; do
         echo "  $line"
     done
 }
@@ -237,7 +239,7 @@ describe_local() {
 }
 
 describe_git() {
-    _repo_dir="/tmp/$(get_base "$1")"
+    _repo_dir="${TMPDIR:?}/$(get_base "$1")"
     trap 'rm -rf -- "$_repo_dir"' 0 1 15
 
     log "Cloning $1... " printf
@@ -440,7 +442,7 @@ bazp_install_dir() {
 bazp_install_git() {
     use git local
 
-    _plugdir="/tmp/$(get_base "$1")"
+    _plugdir="${TMPDIR:?}/$(get_base "$1")"
 
     if [ -e "$_plugdir" ]; then
         log "Removing $1... " printf
@@ -665,7 +667,7 @@ baz_uninstall() {
     [ ! "$1" ] && error 'No plugins specified'
 
     log 'Will uninstall:'
-    _ex="/tmp/baz_uninstall.ss"
+    _ex="${TMPDIR:?}/baz_uninstall.ss"
 
     {
         set -e
