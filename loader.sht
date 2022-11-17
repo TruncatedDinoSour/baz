@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# #{_} => Preprocessor directives
+# #{_} => Preprocessor macro expansion
 
 # Before anything, I'm very sorry
 # about these `local` things, bash
@@ -16,6 +16,7 @@ export BAZ_LOADER_VERSION='#{BAZ_VER}' BAZ_NL=$'\n'
 
 #{BAZ_LOADER_FN}
 
+# We need to optimise this function more or even out
 _baz_get_base() {
     local -n _r="$1"
     shift 1
@@ -37,13 +38,14 @@ _baz_load_envs() {
 
         #{BAZ_LOG} "Loading env variable '$_env_name'"
 
-        # To avoid forking, I'm using mapfile
-        #{BAZ_MFD} _env <"$_baz_env"
+        # To avoid forking, I'm using read
+        #{BAZ_RD} _env <"$_baz_env"
 
-        # Could we optimise these mapfile calls without subshells? Ref ^
-        eval '#{BAZ_MFD} _env<<#{BAZ_RDELIM}'"$BAZ_NL""${_env[*]}"'#{BAZ_RDELIM}'
+        # Could we optimise these read calls without subshells? Ref ^
+        # Basically, can we turn this into a single call ?
+        eval "#{BAZ_RD} _env<<#{BAZ_RDELIM}$BAZ_NL$_env$BAZ_NL"'#{BAZ_RDELIM}'
 
-        export "$_env_name"="${_env[*]%"$BAZ_NL"}"
+        export "$_env_name"="$_env"
     done
 }
 
@@ -79,10 +81,10 @@ _baz_load_functions() {
 
         #{BAZ_LOG} "Loading function '$_func_name'"
 
-        #{BAZ_MFD} _func <"$_baz_func"
+        #{BAZ_RD} _func <"$_baz_func"
 
         eval "function $_func_name(){
-            ${_func[*]}
+            $_func
         }"
     done
 }
@@ -101,10 +103,10 @@ _baz_load_aliases() {
 
         #{BAZ_LOG} "Loading alias '$_alias_name'"
 
-        mapfile -t _alias <"$_baz_alias"
+        #{BAZ_RD} _alias <"$_baz_alias"
 
         # shellcheck disable=SC2139
-        alias "$_alias_name"="${_alias[*]}"
+        alias "$_alias_name"="$_alias"
     done
 }
 
@@ -117,7 +119,7 @@ _baz_load_runners() {
     for _baz_runner in "$_runners_dir"/*; do
         [ -f "$_baz_runner" ] || continue
         #{BAZ_LOG} "Starting runner: '$_baz_runner'"
-        source "$_baz_runner"
+        . "$_baz_runner"
     done
 }
 
@@ -129,11 +131,12 @@ _baz_load_completions() {
 
     for _baz_completion in "$_completions_dir"/*; do
         [ -f "$_baz_completion" ] || continue
-        #{BAZ_LOG} "Adding completion: '$_baz_runner'"
+
+        #{BAZ_LOG} "Adding completion: '$_baz_completion'"
 
         read -r _baz_completions_first_line <"$_baz_completion"
+        _baz_get_base _baz_completion "$_baz_completion"
 
-        _baz_get_base _baz_completion
         complete -F "$_baz_completions_first_line" \
             -o bashdefault -o default "$_baz_completion"
     done
@@ -213,7 +216,7 @@ baz_load_plugin() {
 
     _baz_load_plugin "$baz_plugin"
 
-    baz_log "Loading '$baz_plugin_name' took: ~$(($(("$(date +%s%N)" - start)) / 1000000)) ms" >&2
+    baz_log "Loading '$baz_plugin_name' took $(($(("$(date +%s%N)" - start)) / 1000000)) ms" >&2
 }
 
 # High level multiple plugins loading
@@ -240,7 +243,7 @@ baz_load_all() {
     baz_load_plugins '#{BAZ_PLUG_DIR}'/*
     ret="$?"
 
-    baz_log "Loading all plugins took: ~$(($(("$(date +%s%N)" - start)) / 1000000)) ms" >&2
+    baz_log "Loading all plugins took ~$(($(("$(date +%s%N)" - start)) / 1000000)) ms (this is quite inaccurate)" >&2
 
     return "$ret"
 }

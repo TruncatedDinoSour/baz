@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='5.2.0'
+export BAZ_VERSION='5.3.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -351,10 +351,10 @@ baz_loader() {
         -e "$(baz_loader_q 'BAZ_PLUG_DIR' "$BAZ_PLUGDIR")" \
         -e "$(baz_loader_q 'BAZ_RDELIM' "_____!UNSAFE!_$RANDOM$(head -n 10 /dev/urandom | sha1sum | awk '{print $1}' | head -c 19)$((RANDOM * 2))_!DONT.USE.ME!_____")" \
         -e "$(baz_loader_q 'BAZ_VER' "$BAZ_VERSION")" \
-        -e "$(baz_loader_q 'BAZ_MFD' 'mapfile -d ""')" \
         -e "$(baz_loader_q 'BAZ_LOADER_FN' "$(baz_loader_logging_fn)")" \
         -e "$(baz_loader_q 'BAZ_LOG' "$(baz_loader_baz_log)")" \
         -e "$(baz_loader_q 'BAZ_NOP' "$([ "$BAZ_ENSURE_OK" ] && echo ':')")" \
+        -e "$(baz_loader_q 'BAZ_RD' "read -rd ''")" \
         -e '/^\s*#/d; /^\s*$/d; s/^\s*//g; s/_baz_vecho/._l/g' \
         -e 's/ </</g; s/ >/>/g; s/ \&\& /\&\&/g; s/ || /||/g; s/; /;/g' \
         "$BAZ_LOADER_TEMPLATE")"
@@ -362,9 +362,9 @@ baz_loader() {
     printf '%s' "$loader" | sed -e "$(echo "$loader" | grep '^_.*\(\) {$' |
         awk '{print $1}' |
         while read -r func_name; do
-            echo "s/$(head -c -3 <<<"${func_name}")/._$idx/g;"
+            echo "s/$(head -c -3 <<<"${func_name}")/.$idx/g;"
             idx="$((idx + 1))"
-        done)"
+        done)" -e 's/() {/(){/g'
 }
 
 # Installer helpers

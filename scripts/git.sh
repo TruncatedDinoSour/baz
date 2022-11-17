@@ -5,7 +5,7 @@ set -e
 main() {
     echo 'Did you change the version??'
     printf 'Press enter to mean yes'
-    read -r
+    read -r _
 
     echo 'Okay.. I will sleep for couple of seconds just in case'
     sleep 4s
