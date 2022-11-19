@@ -347,13 +347,13 @@ baz_loader_baz_log() {
 baz_loader() {
     use sed head awk printf grep read echo
 
+    local idx=0 loader shasum
+
     shasum=sha1
     if ! do_error=no use "$shasum"; then
         shasum="${shasum}sum"
-        use "$shasum" || error 'Sha1/sha1sum dependency error: Unable to locate a valid sha1 hash tool'
+        use "$shasum" || error 'sha1/sha1sum dependency error: Unable to locate a valid sha1 hashing tool'
     fi
-
-    local idx=0 loader
 
     loader="$(sed \
         -e "$(baz_loader_q 'BAZ_DATA_DIR' "$BAZ_DIR")" \

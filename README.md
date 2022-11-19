@@ -27,7 +27,7 @@
 -   Small
 -   Minimalistic
 -   GPL3 licensing
--   Cross platform between UNIX-like distributions
+-   Cross platform between UNIX-like distributions (below is a small list of tested ones)
     -   Linux
         -   Gentoo
         -   Void
