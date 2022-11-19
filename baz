@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='5.3.0'
+export BAZ_VERSION='5.4.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -346,12 +346,11 @@ baz_loader() {
     local idx=0 loader
 
     loader="$(sed \
-        -e "$(baz_loader_q 'BAZ_DATA_DIR_SHORT' "$BAZ_DIR")" \
         -e "$(baz_loader_q 'BAZ_DATA_DIR' "$BAZ_DIR")" \
         -e "$(baz_loader_q 'BAZ_PLUG_DIR' "$BAZ_PLUGDIR")" \
         -e "$(baz_loader_q 'BAZ_RDELIM' "_____!UNSAFE!_$RANDOM$(head -n 10 /dev/urandom | sha1sum | awk '{print $1}' | head -c 19)$((RANDOM * 2))_!DONT.USE.ME!_____")" \
         -e "$(baz_loader_q 'BAZ_VER' "$BAZ_VERSION")" \
-        -e "$(baz_loader_q 'BAZ_LOADER_FN' "$(baz_loader_logging_fn)")" \
+        -e "$(baz_loader_q 'BAZ_LOGGING_FN' "$(baz_loader_logging_fn)")" \
         -e "$(baz_loader_q 'BAZ_LOG' "$(baz_loader_baz_log)")" \
         -e "$(baz_loader_q 'BAZ_NOP' "$([ "$BAZ_ENSURE_OK" ] && echo ':')")" \
         -e "$(baz_loader_q 'BAZ_RD' "read -rd ''")" \
@@ -530,28 +529,18 @@ baz_help() {
 
         echo
 
-        log 'Functions:'
-        log "Note: If you want to disable disabled plugins in functions set the BAZ_NO_DISABLED env var to 1" | indent
+        log 'User loader functions:'
 
         {
-            entry 'baz_load_plugin [plugin_or_dir]' 'Load a specified plugin'
+            entry 'baz_load_plugin_low <plug-dir>' 'Load a baz plugin from a specified directory'
+            log 'Note: This is quite a low-level function' | indent
+
+            entry 'baz_loader' 'Load all installed plugins'
             {
-                log 'Return values'
-
-                {
-                    entry 1 'No plugin specifed'
-                    entry 2 'Invalid/non-installed plugin'
-                } | indent
+                log 'Can return anything'
+                log 'Note: Will leave environment variables of last plugin that was loaded'
+                log 'All environment variables from baz.env' | indent
             } | indent
-
-            entry 'baz_load_plugins [plugins_or_dirs...]' 'Load specified plugins'
-            log 'Returns the ammount of plugins which failed to be loaded' | indent
-
-            entry 'baz_load_all' 'Load all installed plugins (high level)'
-            log 'Returns the ammount of plugins which failed to be loaded' | indent
-
-            entry 'baz_loader' 'Load all installed plugins (lower level)'
-            log 'Can return anything' | indent
         } | indent
     } | indent >&2
 }

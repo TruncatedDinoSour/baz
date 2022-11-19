@@ -16,3 +16,4 @@
 -   [Agnoster theme by @TruncatedDinosour](https://github.com/TruncatedDinosour/agnoster-theme-baz-plugin) [Name:agnoster-theme-baz-plugin License:MIT,MIT]
 -   [Git aliases by @TruncatedDinosour](https://github.com/TruncatedDinosour/git-aliases-plugin) [Name:git-aliases-plugin License:WTFPL]
 -   [Mpvp-report plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/mpvp-report) [Name:mpvp-report License:gpl3]
+-   [Baz-extra-plugin-fns plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/baz-extra-plugin-fns) [Name:baz-extra-plugin-fns License:gpl3]

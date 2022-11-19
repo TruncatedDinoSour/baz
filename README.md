@@ -23,6 +23,7 @@
 # Why `baz`
 
 -   Fast
+    -   <https://blog.ari-web.xyz/b/comparison-between-the-oh-my-bash-and-baz-plugin-managers-for-gnu-bash/>
 -   Easy
 -   Small
 -   Minimalistic

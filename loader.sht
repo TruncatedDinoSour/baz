@@ -11,10 +11,10 @@
 # All function names starting with _ will be mangled
 
 # Seperating the $'\n' into a var seems to boost performance
-# by a bit            ->               vvvvvvvvvvvv
+# by a bit. -> -> -> -> -> -> -> -> -> vvvvvvvvvvvv
 export BAZ_LOADER_VERSION='#{BAZ_VER}' BAZ_NL=$'\n'
 
-#{BAZ_LOADER_FN}
+#{BAZ_LOGGING_FN}
 
 # We need to optimise this function more or even out
 _baz_get_base() {
@@ -146,8 +146,7 @@ _baz_load_keybinds() {
     #{BAZ_LOG} "Loading readline keybinds from '$BAZP_NAME'"
 
     local _keybinds_dir="$1/keybinds" _baz_bind _baz_bind_ctx
-    local _all_keybinds="$_keybinds_dir/all.rl"
-    local _bindings_dir="$_keybinds_dir/bindings"
+    local _all_keybinds="$_keybinds_dir/all.rl" _bindings_dir="$_keybinds_dir/bindings"
 
     if [ -f "$_all_keybinds" ]; then
         #{BAZ_LOG} "Loading full-context keybinds"
@@ -166,14 +165,15 @@ _baz_load_keybinds() {
     done
 }
 
-# Low level plugin loading
-_baz_load_plugin() {
+baz_load_plugin_low() {
     . "$1/baz.env"
-
     local p="$1/$BAZP_SRC"
 
     # Having everything inline helps with performance,
     # although reduces maintainablity
+
+    # We could also inline the function calls, but I think it's
+    # too unmaintainable at that point
 
     _baz_load_envs "$p"
     _baz_load_commands "$p"
@@ -184,78 +184,14 @@ _baz_load_plugin() {
     _baz_load_keybinds "$p"
 }
 
-# High level helpers
-baz_plugdir_empty() { [ ! -d '#{BAZ_PLUG_DIR}' ] || [ -z "$(ls -A -- '#{BAZ_PLUG_DIR}' 2>/dev/null)" ]; }
-baz_log() { echo " * $1"; }
-
-# High level plugin loading
-baz_load_plugin() {
-    if baz_plugdir_empty; then
-        baz_log 'No plugin dir found'
-        return 1
-    fi
-
-    [ ! "$1" ] && baz_log 'No plugin specified' 2>&1 && return 1
-
-    local baz_plugin="$1" baz_plugin_name
-    [ -d "$1" ] || baz_plugin="#{BAZ_PLUG_DIR}/$1"
-    _baz_get_base baz_plugin_name "$baz_plugin"
-
-    [ "$BAZ_NO_DISABLED" ] &&
-        [ -e "$baz_plugin/disabled" ] &&
-        baz_log "'$baz_plugin_name' is disabled -- skipping" &&
-        return
-
-    if [ ! -f "$baz_plugin/baz.env" ]; then
-        baz_log "Plugin '$baz_plugin_name' is invalid or is not installed" >&2
-        return 2
-    fi
-
-    local start
-    start="$(date +%s%N)"
-
-    _baz_load_plugin "$baz_plugin"
-
-    baz_log "Loading '$baz_plugin_name' took $(($(("$(date +%s%N)" - start)) / 1000000)) ms" >&2
-}
-
-# High level multiple plugins loading
-baz_load_plugins() {
-    if [ "$#" -le 0 ]; then
-        baz_log 'No plugins to load specified' >&2
-        return 1
-    fi
-
-    local plugin ret=0
-
-    for plugin in "$@"; do
-        baz_load_plugin "$plugin" || ret="$((ret + 1))"
-    done
-
-    return "$ret"
-}
-
-# High level multiple all plugins loading
-baz_load_all() {
-    local start ret
-    start="$(date +%s%N)"
-
-    baz_load_plugins '#{BAZ_PLUG_DIR}'/*
-    ret="$?"
-
-    baz_log "Loading all plugins took ~$(($(("$(date +%s%N)" - start)) / 1000000)) ms (this is quite inaccurate)" >&2
-
-    return "$ret"
-}
-
 # Mid level all plugins loader
 baz_loader() {
-    if baz_plugdir_empty; then
+    if [ ! -d '#{BAZ_PLUG_DIR}' ] || [ -z "$(ls -A -- '#{BAZ_PLUG_DIR}' 2>/dev/null)" ]; then
         #{BAZ_LOG} 'No plugin dir found'
         return 1
     fi
 
-    #{BAZ_LOG} 'Loading baz from data dir: #{BAZ_DATA_DIR_SHORT}'
+    #{BAZ_LOG} 'Loading baz from data dir: #{BAZ_DATA_DIR}'
 
     local plugin
     for plugin in '#{BAZ_PLUG_DIR}'/*; do
@@ -264,7 +200,7 @@ baz_loader() {
         fi
 
         #{BAZ_LOG}
-        _baz_load_plugin "$plugin"
+        baz_load_plugin_low "$plugin"
         #{BAZ_LOG}
     done
 
