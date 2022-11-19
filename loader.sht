@@ -63,7 +63,7 @@ _baz_load_commands() {
 
         if [ ! -x "$_cmd_file" ]; then
             #{BAZ_LOG} "Making '$_cmd_file' executable"
-            chmod 755 -- "$_cmd_file"
+            chmod -- 755 "$_cmd_file"
         fi
     done
 }

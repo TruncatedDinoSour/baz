@@ -27,7 +27,7 @@
 -   Small
 -   Minimalistic
 -   GPL3 licensing
--   Cross platform between UNIX distributions
+-   Cross platform between UNIX-like distributions
     -   Linux
         -   Gentoo
         -   Void
@@ -36,6 +36,7 @@
         -   Arch
     -   BSD
         -   FreeBSD
+        -   OpenBSD
 
 # Automatic setup
 

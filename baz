@@ -86,8 +86,12 @@ indent() {
 
 use() {
     for dep in "$@"; do
-        command -v -- "$dep" >/dev/null ||
-            error "Required dependency not installed: $dep"
+        if ! command -v -- "$dep" >/dev/null; then
+            case "${do_error:-}" in
+            no) return 1 ;;
+            *) error "Required dependency not installed: $dep" ;;
+            esac
+        fi
     done
 }
 
@@ -341,14 +345,20 @@ baz_loader_baz_log() {
 }
 
 baz_loader() {
-    use sed head sha1sum awk printf grep read echo
+    use sed head awk printf grep read echo
+
+    shasum=sha1
+    if ! do_error=no use "$shasum"; then
+        shasum="${shasum}sum"
+        use "$shasum" || error 'Sha1/sha1sum dependency error: Unable to locate a valid sha1 hash tool'
+    fi
 
     local idx=0 loader
 
     loader="$(sed \
         -e "$(baz_loader_q 'BAZ_DATA_DIR' "$BAZ_DIR")" \
         -e "$(baz_loader_q 'BAZ_PLUG_DIR' "$BAZ_PLUGDIR")" \
-        -e "$(baz_loader_q 'BAZ_RDELIM' "_____!UNSAFE!_$RANDOM$(head -n 10 /dev/urandom | sha1sum | awk '{print $1}' | head -c 19)$((RANDOM * 2))_!DONT.USE.ME!_____")" \
+        -e "$(baz_loader_q 'BAZ_RDELIM' "_____!UNSAFE!_$RANDOM$(head -n 10 /dev/urandom | "$shasum" | awk '{print substr($1, 0, 19)}')$((RANDOM * 2))_!DONT.USE.ME!_____")" \
         -e "$(baz_loader_q 'BAZ_VER' "$BAZ_VERSION")" \
         -e "$(baz_loader_q 'BAZ_LOGGING_FN' "$(baz_loader_logging_fn)")" \
         -e "$(baz_loader_q 'BAZ_LOG' "$(baz_loader_baz_log)")" \
@@ -546,7 +556,7 @@ baz_help() {
 }
 
 baz_setup() {
-    use sha1sum awk
+    use awk
 
     if [ "$_baz_upgrade" ]; then
         _baz_new_ver=$(BAZ_NORLWRAP=true ./baz version)
