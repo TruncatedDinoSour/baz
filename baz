@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='5.4.0'
+export BAZ_VERSION='5.5.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -354,14 +354,14 @@ baz_loader() {
         -e "$(baz_loader_q 'BAZ_LOG' "$(baz_loader_baz_log)")" \
         -e "$(baz_loader_q 'BAZ_NOP' "$([ "$BAZ_ENSURE_OK" ] && echo ':')")" \
         -e "$(baz_loader_q 'BAZ_RD' "read -rd ''")" \
-        -e '/^\s*#/d; /^\s*$/d; s/^\s*//g; s/_baz_vecho/._l/g' \
+        -e '/^[[:space:]]*#/d; /^[[:space:]]*$/d; s/^[[:space:]]*//g; s/_baz_vecho/._l/g' \
         -e 's/ </</g; s/ >/>/g; s/ \&\& /\&\&/g; s/ || /||/g; s/; /;/g' \
         "$BAZ_LOADER_TEMPLATE")"
 
     printf '%s' "$loader" | sed -e "$(echo "$loader" | grep '^_.*\(\) {$' |
         awk '{print $1}' |
         while read -r func_name; do
-            echo "s/$(head -c -3 <<<"${func_name}")/.$idx/g;"
+            echo "s/${func_name::-2}/.$idx/g;"
             idx="$((idx + 1))"
         done)" -e 's/() {/(){/g'
 }
@@ -787,9 +787,11 @@ main() {
     [ "$_BAZ_NO_PRE" != true ] && [ -f "$BAZ_PRE" ] && . "$BAZ_PRE"
 
     if [ "$BAZ_NORLWRAP" != true ] && command -v rlwrap >/dev/null; then
-        use mktemp trap rlwrap return
+        use trap rlwrap return
 
-        _rlhist="$(mktemp 'baz.XXXXXX' --tmpdir)"
+        _rlhist="$TMPDIR/.baz.$RANDOM"
+
+        : >"$_rlhist"
         trap 'rm -f -- "$_rlhist"' 0 1 15
 
         _BAZ_NO_PRE=true BAZ_NORLWRAP=true rlwrap -g '.*' -H "$_rlhist" -- "$0" "$@"

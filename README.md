@@ -13,10 +13,9 @@
 
 # Dependencies
 
--   GNU coreutils
--   GNU bash
+-   Coreutils
+-   BASH
 -   Git cli
--   Linux
 -   Rlwrap (optional, but it's nice for special keys)
 -   Bash-completion (optional, but it's nice for well.. Completion)
 
@@ -28,6 +27,15 @@
 -   Small
 -   Minimalistic
 -   GPL3 licensing
+-   Cross platform between UNIX distributions
+    -   Linux
+        -   Gentoo
+        -   Void
+        -   Debian
+        -   Ubuntu
+        -   Arch
+    -   BSD
+        -   FreeBSD
 
 # Automatic setup
 
