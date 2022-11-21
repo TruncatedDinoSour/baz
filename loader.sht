@@ -16,27 +16,14 @@ export BAZ_LOADER_VERSION='#{BAZ_VER}' BAZ_NL=$'\n'
 
 #{BAZ_LOGGING_FN}
 
-# We need to optimise this function more or even out
-_baz_get_base() {
-    local -n _r="$1"
-    shift 1
-
-    set -- "${1%"${1##*[!/]}"}"
-    printf -v _r %s "${1##*/}"
-}
-
 _baz_load_envs() {
     #{BAZ_LOG} "Loading environment variables from '$BAZP_NAME'"
 
-    local _envs_dir="$1/environments" _baz_env _env_name _env
+    local _envs_dir="$1/environments" _baz_env _env
     [ -d "$_envs_dir" ] || return
 
     for _baz_env in "$_envs_dir"/*; do
-        [ -f "$_baz_env" ] || continue
-
-        _baz_get_base _env_name "$_baz_env"
-
-        #{BAZ_LOG} "Loading env variable '$_env_name'"
+        #{BAZ_LOG} "Loading env variable '$_baz_env'"
 
         # To avoid forking, I'm using read
         #{BAZ_RD} _env <"$_baz_env"
@@ -45,7 +32,7 @@ _baz_load_envs() {
         # Basically, can we turn this into a single call ?
         eval "#{BAZ_RD} _env<<#{BAZ_RDELIM}$BAZ_NL$_env$BAZ_NL"'#{BAZ_RDELIM}'
 
-        export "$_env_name"="$_env"
+        export "${_baz_env##*/}"="$_env"
     done
 }
 
@@ -58,7 +45,6 @@ _baz_load_commands() {
     export PATH="$PATH:$_cmd_dir"
 
     for _cmd_file in "$_cmd_dir"/*; do
-        [ -f "$_cmd_file" ] || continue
         #{BAZ_LOG} "Loading command: $_cmd_file"
 
         if [ ! -x "$_cmd_file" ]; then
@@ -71,19 +57,15 @@ _baz_load_commands() {
 _baz_load_functions() {
     #{BAZ_LOG} "Loading functions from '$BAZP_NAME'"
 
-    local _func_dir="$1/functions" _baz_func _func_name _func
+    local _func_dir="$1/functions" _func
     [ -d "$_func_dir" ] || return
 
     for _baz_func in "$_func_dir"/*; do
-        [ -f "$_baz_func" ] || continue
-
-        _baz_get_base _func_name "$_baz_func"
-
-        #{BAZ_LOG} "Loading function '$_func_name'"
+        #{BAZ_LOG} "Loading function '$_baz_func'"
 
         #{BAZ_RD} _func <"$_baz_func"
 
-        eval "function $_func_name(){
+        eval "function ${_baz_func##*/}(){
             $_func
         }"
     done
@@ -92,21 +74,16 @@ _baz_load_functions() {
 _baz_load_aliases() {
     #{BAZ_LOG} "Loading aliases from '$BAZP_NAME'"
 
-    local _alias_dir="$1/aliases" _baz_alias _alias_name _alias
+    local _alias_dir="$1/aliases" _baz_alias _alias
     [ -d "$_alias_dir" ] || return
 
     for _baz_alias in "$_alias_dir"/*; do
-        [ -f "$_baz_alias" ] || continue
-
-        _baz_get_base _alias_name "$_baz_alias"
-        [ "$_alias_name" ] || continue
-
-        #{BAZ_LOG} "Loading alias '$_alias_name'"
+        #{BAZ_LOG} "Loading alias '$_baz_alias'"
 
         #{BAZ_RD} _alias <"$_baz_alias"
 
         # shellcheck disable=SC2139
-        alias "$_alias_name"="$_alias"
+        alias "${_baz_alias##*/}"="$_alias"
     done
 }
 
@@ -117,7 +94,6 @@ _baz_load_runners() {
     [ -d "$_runners_dir" ] || return
 
     for _baz_runner in "$_runners_dir"/*; do
-        [ -f "$_baz_runner" ] || continue
         #{BAZ_LOG} "Starting runner: '$_baz_runner'"
         . "$_baz_runner"
     done
@@ -130,22 +106,19 @@ _baz_load_completions() {
     [ -d "$_completions_dir" ] || return
 
     for _baz_completion in "$_completions_dir"/*; do
-        [ -f "$_baz_completion" ] || continue
-
         #{BAZ_LOG} "Adding completion: '$_baz_completion'"
 
         read -r _baz_completions_first_line <"$_baz_completion"
-        _baz_get_base _baz_completion "$_baz_completion"
 
         complete -F "$_baz_completions_first_line" \
-            -o bashdefault -o default "$_baz_completion"
+            -o bashdefault -o default "${_baz_completion##*/}"
     done
 }
 
 _baz_load_keybinds() {
     #{BAZ_LOG} "Loading readline keybinds from '$BAZP_NAME'"
 
-    local _keybinds_dir="$1/keybinds" _baz_bind _baz_bind_ctx
+    local _keybinds_dir="$1/keybinds" _baz_bind
     local _all_keybinds="$_keybinds_dir/all.rl" _bindings_dir="$_keybinds_dir/bindings"
 
     if [ -f "$_all_keybinds" ]; then
@@ -158,10 +131,8 @@ _baz_load_keybinds() {
     #{BAZ_LOG} "Loading contexed keybinds"
 
     for _baz_bind in "$_bindings_dir"/*; do
-        _baz_get_base _baz_bind_ctx "$_baz_bind"
-
-        #{BAZ_LOG} "Loading keybinds for context: $_baz_bind_ctx"
-        bind -m "$_baz_bind_ctx" -f "$_baz_bind"
+        #{BAZ_LOG} "Loading keybinds for context: $_baz_bind"
+        bind -m "${_baz_bind##*/}" -f "$_baz_bind"
     done
 }
 
@@ -186,7 +157,7 @@ baz_load_plugin_low() {
 
 # Mid level all plugins loader
 baz_loader() {
-    if [ ! -d '#{BAZ_PLUG_DIR}' ] || [ -z "$(ls -A -- '#{BAZ_PLUG_DIR}' 2>/dev/null)" ]; then
+    if [ ! -d '#{BAZ_PLUG_DIR}' ] || [ -z "$(ls -- '#{BAZ_PLUG_DIR}' 2>/dev/null)" ]; then
         #{BAZ_LOG} 'No plugin dir found'
         return 1
     fi
