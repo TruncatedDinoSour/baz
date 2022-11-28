@@ -27,7 +27,7 @@
 -   Small
 -   Minimalistic
 -   GPL3 licensing
--   Cross platform between UNIX-like distributions (below is a small list of tested ones)
+-   Cross platform
     -   Linux
         -   Gentoo
         -   Void
@@ -37,6 +37,9 @@
     -   BSD
         -   FreeBSD
         -   OpenBSD
+    -   Windows
+        -   Git BASH
+        -   Windows subsystem for Linux (WSL)
 
 # Automatic setup
 
