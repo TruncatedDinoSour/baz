@@ -39,7 +39,7 @@ _baz_load_envs() {
 _baz_load_commands() {
     #{BAZ_LOG} "Adding '$BAZP_NAME' commands to PATH"
 
-    local _cmd_dir="$1/commands" _cmd_file
+    local _cmd_dir="$1/commands"
     [ -d "$_cmd_dir" ] || return
 
     export PATH="$PATH:$_cmd_dir"
