@@ -63,6 +63,16 @@ Preferred licenses:
 -   WTFPL (`Do what the fuck you want to Public license` -- <http://www.wtfpl.net/>)
 -   GPLv3 (`GNU general public license version 3` -- <https://www.gnu.org/licenses/gpl-3.0.en.html>)
 
+## Load order
+
+-   Environment variables
+-   Commands
+-   Functions
+-   Aliases
+-   Runners
+-   BASH completions
+-   Key bindings
+
 ## Tips
 
 -   Optimise for speed no matter what it takes

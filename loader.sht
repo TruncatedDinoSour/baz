@@ -11,7 +11,7 @@
 # All function names starting with _ will be mangled
 
 # Seperating the $'\n' into a var seems to boost performance
-# by a bit. -> -> -> -> -> -> -> -> -> vvvvvvvvvvvv
+# by a bit    ->     ->    ->    ->    vvvvvvvvvvvv
 export BAZ_LOADER_VERSION='#{BAZ_VER}' BAZ_NL=$'\n'
 
 #{BAZ_LOGGING_FN}
@@ -44,14 +44,9 @@ _baz_load_commands() {
 
     export PATH="$PATH:$_cmd_dir"
 
-    for _cmd_file in "$_cmd_dir"/*; do
-        #{BAZ_LOG} "Loading command: $_cmd_file"
+    #{BAZ_LOG} "Making '$BAZP_NAME' commands executable"
 
-        if [ ! -x "$_cmd_file" ]; then
-            #{BAZ_LOG} "Making '$_cmd_file' executable"
-            chmod -- 755 "$_cmd_file"
-        fi
-    done
+    chmod -- 755 "$_cmd_dir"/*
 }
 
 _baz_load_functions() {
