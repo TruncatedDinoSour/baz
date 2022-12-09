@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='5.7.0'
+export BAZ_VERSION='5.8.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -159,8 +159,8 @@ baz_update_plugin_local() {
     origin="$(head -n 1 origin)"
     local_bazp="$origin/$BAZP_INDEX"
 
-    [ ! -d "$origin" ] && error "Origin $origin does not exist for plugin: $1"
-    [ ! -f "$local_bazp" ] && error "No $BAZP_INDEX in $origin for plugin: $1"
+    [ -d "$origin" ] || error "Origin $origin does not exist for plugin: $1"
+    [ -f "$local_bazp" ] || error "No $BAZP_INDEX in $origin for plugin: $1"
 
     BAZP_NO_LOG=true
 
@@ -234,7 +234,7 @@ describe_env() {
 }
 
 describe_local() {
-    [ ! -d "$1" ] && error "Plugin directory $1 does not exist"
+    [ -d "$1" ] || error "Plugin directory $1 does not exist"
 
     cd -- "$1"
     . "$BAZP_INDEX"
@@ -260,12 +260,12 @@ describe_git() {
 describe_exist() {
     _plugdir="${BAZ_PLUGDIR:?}/$1"
 
-    [ ! -d "${BAZ_PLUGDIR:?}" ] && error 'Plugin directory does not exist'
-    [ ! -d "${_plugdir:?}" ] && error "Plugin '$1' not installed"
+    [ -d "${BAZ_PLUGDIR:?}" ] || error 'Plugin directory does not exist'
+    [ -d "${_plugdir:?}" ] || error "Plugin '$1' not installed"
 
     cd -- "$_plugdir"
 
-    [ ! -f "${BAZP_INDEX:?}" ] && error "'$BAZP_INDEX' does not exist"
+    [ -f "${BAZP_INDEX:?}" ] || error "'$BAZP_INDEX' does not exist"
     . "$BAZP_INDEX"
 
     describe_env
@@ -402,10 +402,10 @@ bazp_reset_env() {
 }
 
 bazp_install_dir() {
-    [ ! -d "$1" ] && error "'$1' is not a directory"
+    [ -d "$1" ] || error "'$1' is not a directory"
     cd -- "$1"
 
-    [ ! -f "$BAZP_INDEX" ] && error "$BAZP_INDEX does not exist"
+    [ -f "$BAZP_INDEX" ] || error "$BAZP_INDEX does not exist"
 
     if [ "$BAZP_NO_ASKCHECK" != 'true' ]; then
         yn "Do you want to check out $BAZP_INDEX?" && less -- "$BAZP_INDEX"
@@ -420,13 +420,13 @@ bazp_install_dir() {
     for listing in "${BAZP_ENV[@]}"; do
         _blacklist="BLACKLIST_${listing}"
 
-        [ ! "${!_blacklist}" ] && continue
+        [ "${!_blacklist}" ] || continue
 
         in_array "${!_blacklist}" "${!listing}" &&
             error "$listing '${!listing}' is blacklisted by $_blacklist"
     done
 
-    [ ! -d "${BAZ_PLUGDIR:?}" ] && mkdir -p -- "${BAZ_PLUGDIR:?}"
+    [ -d "${BAZ_PLUGDIR:?}" ] || mkdir -p -- "${BAZ_PLUGDIR:?}"
     [ -d "${BAZ_PLUGDIR:?}/${BAZP_NAME:?}" ] && error "Plugin '$BAZP_NAME' already is installed"
 
     baz_run_hook 'pre-install'
@@ -642,8 +642,8 @@ baz_unsetup() {
 }
 
 baz_install() {
-    [ ! "$1" ] && error 'no method specified'
-    [ ! "$2" ] && error 'no atom specified'
+    [ "$1" ] || error 'no method specified'
+    [ "$2" ] || error 'no atom specified'
 
     log 'Will install:'
     {
@@ -668,7 +668,7 @@ baz_install() {
 }
 
 baz_uninstall() {
-    [ ! "$1" ] && error 'No plugins specified'
+    [ "$1" ] || error 'No plugins specified'
 
     log 'Will uninstall:'
     _ex="${TMPDIR:?}/baz_uninstall.ss"
@@ -712,7 +712,7 @@ baz_uninstall() {
 }
 
 baz_list() {
-    [ ! -d "${BAZ_PLUGDIR:?}" ] && error 'No plugin directory'
+    [ -d "${BAZ_PLUGDIR:?}" ] || error 'No plugin directory'
     [ -z "$(ls -A -- "${BAZ_PLUGDIR:?}")" ] && error 'No plugins installed'
 
     log 'Installed plugins:'
@@ -738,7 +738,7 @@ baz_update() {
             baz_update_plugin "${BAZ_PLUGDIR:?}/${plugin:?}" &
         done
     else
-        [ ! -d "${BAZ_PLUGDIR:?}" ] && error 'No plugin directory'
+        [ -d "${BAZ_PLUGDIR:?}" ] || error 'No plugin directory'
         eecho 'all'
 
         for plugin in "${BAZ_PLUGDIR:?}"/*; do
@@ -752,8 +752,8 @@ baz_update() {
 }
 
 baz_info() {
-    [ ! "$1" ] && error 'no plugin type specified'
-    [ ! "$2" ] && error 'no atom specified'
+    [ "$1" ] || error 'no plugin type specified'
+    [ "$2" ] || error 'no atom specified'
 
     fn="describe_$1"
     command -v -- "$fn" >/dev/null ||
@@ -775,7 +775,7 @@ baz_upgrade() {
 }
 
 baz_disable() {
-    [ ! "$1" ] && error 'No plugins specified'
+    [ "$1" ] || error 'No plugins specified'
 
     for plugin in "$@"; do
         check_plugin_state
@@ -786,7 +786,7 @@ baz_disable() {
 }
 
 baz_enable() {
-    [ ! "$1" ] && error 'No plugins specified'
+    [ "$1" ] || error 'No plugins specified'
 
     for plugin in "$@"; do
         check_plugin_state

@@ -52,7 +52,7 @@ _baz_load_commands() {
 _baz_load_functions() {
     #{BAZ_LOG} "Loading functions from '$BAZP_NAME'"
 
-    local _func_dir="$1/functions" _func
+    local _func_dir="$1/functions" _func _baz_func
     [ -d "$_func_dir" ] || return
 
     for _baz_func in "$_func_dir"/*; do
@@ -161,9 +161,7 @@ baz_loader() {
 
     local plugin
     for plugin in '#{BAZ_PLUG_DIR}'/*; do
-        if [ -e "$plugin/disabled" ] || [ ! -f "$plugin/baz.env" ]; then
-            continue
-        fi
+        [ -e "$plugin/disabled" ] || [ ! -f "$plugin/baz.env" ] && continue
 
         #{BAZ_LOG}
         baz_load_plugin_low "$plugin"
