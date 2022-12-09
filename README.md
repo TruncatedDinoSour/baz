@@ -25,8 +25,9 @@
     -   <https://blog.ari-web.xyz/b/comparison-between-the-oh-my-bash-and-baz-plugin-managers-for-gnu-bash/>
 -   Easy
 -   Small
+-   Simple
+-   Flexible
 -   Minimalistic
--   GPL3 licensing
 -   Cross platform
     -   Linux
         -   Gentoo
@@ -40,6 +41,7 @@
     -   Windows
         -   Git BASH
         -   Windows subsystem for Linux (WSL)
+-   GPLv3 licensing
 
 # Automatic setup
 
