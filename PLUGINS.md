@@ -17,3 +17,4 @@
 -   [Git aliases by @TruncatedDinosour](https://github.com/TruncatedDinosour/git-aliases-plugin) [Name:git-aliases-plugin License:WTFPL]
 -   [Mpvp-report plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/mpvp-report) [Name:mpvp-report License:gpl3]
 -   [Baz-extra-plugin-fns plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/baz-extra-plugin-fns) [Name:baz-extra-plugin-fns License:gpl3]
+-   [Unifetch plugin by @Jin-Asanami](https://github.com/Jin-Asanami/unifetch) [Name:unifetch License:MIT]
