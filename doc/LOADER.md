@@ -7,7 +7,6 @@
 There should be at least these two environment variables:
 
 -   `BAZ_LOADER_VERSION` -- Your `baz` plugin loader version, should be the same as `baz` version
--   `BAZ_NL` -- The newline used in environment variables
 
 ## Functions
 

@@ -10,9 +10,7 @@
 
 # All function names starting with _ will be mangled
 
-# Seperating the $'\n' into a var seems to boost performance
-# by a bit    ->     ->    ->    ->    vvvvvvvvvvvv
-export BAZ_LOADER_VERSION='#{BAZ_VER}' BAZ_NL=$'\n'
+export BAZ_LOADER_VERSION='#{BAZ_VER}'
 
 #{BAZ_LOGGING_FN}
 
@@ -30,7 +28,9 @@ _baz_load_envs() {
 
         # Could we optimise these read calls without subshells? Ref ^
         # Basically, can we turn this into a single call ?
-        eval "#{BAZ_RD} _env<<#{BAZ_RDELIM}$BAZ_NL$_env$BAZ_NL"'#{BAZ_RDELIM}'
+        eval "#{BAZ_RD} _env<<#{BAZ_RDELIM}
+$_env
+#{BAZ_RDELIM}"
 
         export "${_baz_env##*/}"="$_env"
     done
@@ -105,8 +105,7 @@ _baz_load_completions() {
 
         read -r _baz_completions_first_line <"$_baz_completion"
 
-        complete -F "$_baz_completions_first_line" \
-            -o bashdefault -o default "${_baz_completion##*/}"
+        complete -F "$_baz_completions_first_line" -o bashdefault -o default "${_baz_completion##*/}"
     done
 }
 
