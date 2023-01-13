@@ -1,27 +1,25 @@
 #!/usr/bin/env bash
 
-# #{_} => Preprocessor macro expansion
+# #{_} => preprocessor macro expansion
 
-# Before anything, I'm very sorry
-# about these `local` things, bash
-# is sometimes trash, this is one
-# example of bash handling clearly
+# before anything, I'm very sorry about these `local` things, bash
+# is sometimes trash, this is one example of bash handling clearly
 # local variables like globals
 
-# All function names starting with _ will be mangled
+# all function names starting with _ will be mangled
 
 export BAZ_LOADER_VERSION='#{BAZ_VER}'
 
 #{BAZ_LOGGING_FN}
 
 _baz_load_envs() {
-    #{BAZ_LOG} "Loading environment variables from '$BAZP_NAME'"
+    #{BAZ_LOG} "loading environment variables from '$BAZP_NAME'"
 
-    local _envs_dir="$1/environments" _baz_env _env
-    [ -d "$_envs_dir" ] || return
+    local _baz_env="$1/environments" _env
+    [ -d "$_baz_env" ] || return
 
-    for _baz_env in "$_envs_dir"/*; do
-        #{BAZ_LOG} "Loading env variable '$_baz_env'"
+    for _baz_env in "$_baz_env"/*; do
+        #{BAZ_LOG} "loading env variable '$_baz_env'"
 
         # To avoid forking, I'm using read
         #{BAZ_RD} _env <"$_baz_env"
@@ -37,26 +35,26 @@ $_env
 }
 
 _baz_load_commands() {
-    #{BAZ_LOG} "Adding '$BAZP_NAME' commands to PATH"
+    #{BAZ_LOG} "adding '$BAZP_NAME' commands to PATH"
 
     local _cmd_dir="$1/commands"
     [ -d "$_cmd_dir" ] || return
 
     export PATH="$PATH:$_cmd_dir"
 
-    #{BAZ_LOG} "Making '$BAZP_NAME' commands executable"
+    #{BAZ_LOG} "making '$BAZP_NAME' commands executable"
 
     chmod -- 755 "$_cmd_dir"/*
 }
 
 _baz_load_functions() {
-    #{BAZ_LOG} "Loading functions from '$BAZP_NAME'"
+    #{BAZ_LOG} "loading functions from '$BAZP_NAME'"
 
-    local _func_dir="$1/functions" _func _baz_func
-    [ -d "$_func_dir" ] || return
+    local _baz_func="$1/functions" _func
+    [ -d "$_baz_func" ] || return
 
-    for _baz_func in "$_func_dir"/*; do
-        #{BAZ_LOG} "Loading function '$_baz_func'"
+    for _baz_func in "$_baz_func"/*; do
+        #{BAZ_LOG} "loading function '$_baz_func'"
 
         #{BAZ_RD} _func <"$_baz_func"
 
@@ -67,13 +65,13 @@ _baz_load_functions() {
 }
 
 _baz_load_aliases() {
-    #{BAZ_LOG} "Loading aliases from '$BAZP_NAME'"
+    #{BAZ_LOG} "loading aliases from '$BAZP_NAME'"
 
-    local _alias_dir="$1/aliases" _baz_alias _alias
-    [ -d "$_alias_dir" ] || return
+    local _baz_alias="$1/aliases" _alias
+    [ -d "$_baz_alias" ] || return
 
-    for _baz_alias in "$_alias_dir"/*; do
-        #{BAZ_LOG} "Loading alias '$_baz_alias'"
+    for _baz_alias in "$_baz_alias"/*; do
+        #{BAZ_LOG} "loading alias '$_baz_alias'"
 
         #{BAZ_RD} _alias <"$_baz_alias"
 
@@ -83,25 +81,25 @@ _baz_load_aliases() {
 }
 
 _baz_load_runners() {
-    #{BAZ_LOG} "Running runners in '$BAZP_NAME'"
+    #{BAZ_LOG} "running runners in '$BAZP_NAME'"
 
-    local _runners_dir="$1/runners" _baz_runner
-    [ -d "$_runners_dir" ] || return
+    local _baz_runner="$1/runners"
+    [ -d "$_baz_runner" ] || return
 
-    for _baz_runner in "$_runners_dir"/*; do
-        #{BAZ_LOG} "Starting runner: '$_baz_runner'"
+    for _baz_runner in "$_baz_runner"/*; do
+        #{BAZ_LOG} "starting runner: '$_baz_runner'"
         . "$_baz_runner"
     done
 }
 
 _baz_load_completions() {
-    #{BAZ_LOG} "Adding completions from '$BAZP_NAME'"
+    #{BAZ_LOG} "adding completions from '$BAZP_NAME'"
 
-    local _completions_dir="$1/completions" _baz_completion _baz_completions_first_line
-    [ -d "$_completions_dir" ] || return
+    local _baz_completion="$1/completions" _baz_completions_first_line
+    [ -d "$_baz_completion" ] || return
 
-    for _baz_completion in "$_completions_dir"/*; do
-        #{BAZ_LOG} "Adding completion: '$_baz_completion'"
+    for _baz_completion in "$_baz_completion"/*; do
+        #{BAZ_LOG} "adding completion: '$_baz_completion'"
 
         read -r _baz_completions_first_line <"$_baz_completion"
 
@@ -110,22 +108,22 @@ _baz_load_completions() {
 }
 
 _baz_load_keybinds() {
-    #{BAZ_LOG} "Loading readline keybinds from '$BAZP_NAME'"
+    #{BAZ_LOG} "loading readline keybinds from '$BAZP_NAME'"
 
-    local _keybinds_dir="$1/keybinds" _baz_bind
-    local _all_keybinds="$_keybinds_dir/all.rl" _bindings_dir="$_keybinds_dir/bindings"
+    local _baz_bind="$1/keybinds"
+    local _all_keybinds="$_baz_bind/all.rl" _baz_bind="$_baz_bind/bindings"
 
     if [ -f "$_all_keybinds" ]; then
-        #{BAZ_LOG} "Loading full-context keybinds"
+        #{BAZ_LOG} 'loading full-context keybinds'
         bind -f "$_all_keybinds"
     fi
 
-    [ -d "$_bindings_dir" ] || return
+    [ -d "$_baz_bind" ] || return
 
-    #{BAZ_LOG} "Loading contexed keybinds"
+    #{BAZ_LOG} 'loading contexed keybinds'
 
-    for _baz_bind in "$_bindings_dir"/*; do
-        #{BAZ_LOG} "Loading keybinds for context: $_baz_bind"
+    for _baz_bind in "$_baz_bind"/*; do
+        #{BAZ_LOG} "loading keybinds for context: $_baz_bind"
         bind -m "${_baz_bind##*/}" -f "$_baz_bind"
     done
 }
@@ -151,19 +149,19 @@ baz_load_plugin_low() {
 
 # Mid level all plugins loader
 baz_loader() {
-    if [ ! -d '#{BAZ_PLUG_DIR}' ] || [ -z "$(ls -- '#{BAZ_PLUG_DIR}' 2>/dev/null)" ]; then
-        #{BAZ_LOG} 'No plugin dir found'
-        return 1
-    fi
+    local p=('#{BAZ_PLUG_DIR}'/*)
 
-    #{BAZ_LOG} 'Loading baz from data dir: #{BAZ_DATA_DIR}'
+    #{BAZ_LOG} 'checking if #{BAZ_PLUG_DIR} exists and isnt empty'
 
-    local plugin
-    for plugin in '#{BAZ_PLUG_DIR}'/*; do
-        [ -e "$plugin/disabled" ] || [ ! -f "$plugin/baz.env" ] && continue
+    [ -d "${p[0]}" ] || return 1
+
+    #{BAZ_LOG} 'loading baz from data dir: #{BAZ_DATA_DIR}'
+
+    for p in "${p[@]}"; do
+        [ -e "$p/disabled" ] || [ ! -f "$p/baz.env" ] && continue
 
         #{BAZ_LOG}
-        baz_load_plugin_low "$plugin"
+        baz_load_plugin_low "$p"
         #{BAZ_LOG}
     done
 
