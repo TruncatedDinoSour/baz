@@ -494,7 +494,7 @@ baz_help() {
     elog "help for baz v$BAZ_VERSION"
 
     {
-        log 'subcommands:'
+        log 'subcommands :'
 
         {
             entry 'help' 'print help'
