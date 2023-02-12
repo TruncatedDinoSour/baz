@@ -44,7 +44,9 @@ main() {
     echo 'setting baz up'
     ./baz setup
 
-    [ "$yn" ] || read -rp 'do you want to add loader lines to bashrc ? [y/n] >>> ' yn
+    if [ ! "$yn" ]; then
+        read -rp 'do you want to add loader lines to bashrc ? [y/n] >>> ' yn
+    fi
 
     if [ "$yn" = 'y' ]; then
         use tee
