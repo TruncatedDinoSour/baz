@@ -1,8 +1,8 @@
-# Baz plugin folder structure
+# baz plugin folder structure
 
-As you can in in [the example plugin](/examples/example_plugin) folder
+as you can in in [the example plugin](/examples/example_plugin) folder
 there is a specific structure for files and folders,
-what do they all mean?
+what do they all mean ?
 
 ## baz.env
 
@@ -19,9 +19,9 @@ where it all goes
 
 ### plugin/aliases
 
-This folder has all aliases defined
-by baz, by... You, the folder structure
-goes like this:
+this folder has all aliases defined
+by baz, by ... you, the folder structure
+goes like this :
 
 ```
 aliases/
@@ -31,22 +31,22 @@ aliases/
     | <alias name>
 ```
 
-Alias name can be anything with uppercase and lowercase
+alias name can be anything with uppercase and lowercase
 letters and \_, the files should include
-the alias content, for example:
+the alias content, for example :
 
 ```
 aliases/
     | hello
 ```
 
-- aliases/hello
+-   aliases/hello
 
 ```bash
 echo 'hi'
 ```
 
-Is the same as
+is the same as
 
 ```bash
 alias hello="echo 'hi'"
@@ -54,10 +54,10 @@ alias hello="echo 'hi'"
 
 ### plugin/commands
 
-This directory should include executable
-files/scripts that will get added to `$PATH`,
+this directory should include executable
+files / scripts that will get added to `$PATH`,
 its naming is the same as the aliases, by which
-I mean:
+i mean :
 
 ```
 commands/
@@ -67,14 +67,14 @@ commands/
     | <command name>
 ```
 
-And it has the same naming rules as aliases
+and it has the same naming rules as aliases
 
 ### plugin/completions
 
-This directory should include all completions
-and what functions to use for them as the file's
+this directory should include all completions
+and what functions to use for them as the files
 content, the folder structure should look like
-this:
+this :
 
 ```
 completions/
@@ -84,11 +84,11 @@ completions/
     | <command name>
 ```
 
-In files `<command name>` should be a function name
-(should be defined in `functions/` directory) and nothing
-else, it will be called as the completions function.
+in files `<command name>` should be a function name
+( should be defined in `functions/` directory ) and nothing
+else, it will be called as the completions function
 
-For example:
+for example :
 
 ```
 completions/
@@ -150,13 +150,13 @@ _have mailmanctl &&
 # ex: filetype=sh
 ```
 
-This will generate completions for `arch` command
+this will generate completions for `arch` command
 
 ### plugin/environments
 
-This directory includes environment variable
+this directory includes environment variable
 definitions, it also has the same naming and
-structure as aliases:
+structure as aliases :
 
 ```
 environments/
@@ -166,18 +166,18 @@ environments/
     | <environment variable name>
 ```
 
-Same rules for naming as aliases and commands
+same rules for naming as aliases and commands
 
-It gets expanded like this:
+it gets expanded like this :
 
 ```bash
-export <environment variable name>=<content of file>
+export '<environment variable name>'="<content of file>"
 ```
 
 ### plugin/functions
 
-This directory includes function definitions,
-it also has the same naming and structure as aliases:
+this directory includes function definitions,
+it also has the same naming and structure as aliases :
 
 ```
 functions/
@@ -187,9 +187,9 @@ functions/
     | <funnction name>
 ```
 
-Same rules for naming as aliases, commands and environments
+same rules for naming as aliases, commands and environments
 
-It gets expanded like this:
+it gets expanded like this :
 
 ```bash
 function <function_name>() {
@@ -199,10 +199,10 @@ function <function_name>() {
 
 ### plugin/keybinds
 
-This directory includes [GNU readline syntax](https://www.gnu.org/software/bash/manual/html_node/Readline-Init-File-Syntax.html)
+this directory includes [GNU readline syntax](https://www.gnu.org/software/bash/manual/html_node/Readline-Init-File-Syntax.html)
 files, they will get `bind`ed
 
-Folder structure should look like this:
+folder structure should look like this :
 
 ```
 keybinds/
@@ -214,34 +214,34 @@ keybinds/
         | <context name>
 ```
 
-- `all.rl`
+-   `all.rl`
 
-This includes full-context bindings, it will
-work in any context (keymap)
+this includes full-context bindings, it will
+work in any context ( keymap )
 
-- `bindings`
+-   `bindings`
 
-This directory includes files which again files
+this directory includes files which again files
 with readline syntax but they get binded to a specific
 context, for example `vi-command`, `emacs-meta`, etc.
 the context should be the name of the file
 
-`all.rl` Basically expands to:
+`all.rl` basically expands to :
 
 ```bash
 bind -f 'all.rl"
 ```
 
-`bindings/...` Expands to:
+`bindings/...` expands to :
 
 ```bash
-bind -m '<context name>' -f '<context name (as path)>'
+bind -m '<context name>' -f '<context name ( as path )>'
 ```
 
 ### plugin/runners
 
-This directory includes files that will be sourced/ran
-on load:
+this directory includes files that will be sourced / ran
+on load :
 
 ```
 runners/
@@ -251,48 +251,49 @@ runners/
     | <runner name>
 ```
 
-It gets expanded like this:
+it gets expanded like this :
 
 ```bash
 source <runner name>
 ```
+
 ### plugin/hooks
 
-You can store hooks here,
+you can store hooks here,
 they are either ran or sourced after or before a
-certain action, as of now I have restricted it to these hooks:
+certain action, as of now I have restricted it to these hooks :
 
-- pre-install
-  - post-install
-- pre-update
-  - post-update
-- pre-uninstall
+-   pre-install
+    -   post-install
+-   pre-update
+    -   post-update
+-   pre-uninstall
 
-These hooks will be ran with bash (`bash <hook-name>`),
+these hooks will be ran with bash ( `bash <hook-name>` ),
 if you want more low level control and want to affect
-baz from the core just append `-source` to your hook name:
+baz from the core just append `-source` to your hook name :
 
-- pre-install-source
-  - post-install-source
-- pre-update-source
-  - post-update-source
-- pre-uninstall-source
+-   pre-install-source
+    -   post-install-source
+-   pre-update-source
+    -   post-update-source
+-   pre-uninstall-source
 
-These will be sourced (`source <hook-name>`)
+these will be sourced ( `source <hook-name>` )
 
-Also you an append `-pre` to run before the hook and
-`-post` after the hook, they will be sourced:
+also you an append `-pre` to run before the hook and
+`-post` after the hook, they will be sourced :
 
-- pre-install-pre
-- pre-install-post
-- pre-update-pre
-- pre-update-post
-- pre-uninstall-pre
-- pre-uninstall-post
+-   pre-install-pre
+-   pre-install-post
+-   pre-update-pre
+-   pre-update-post
+-   pre-uninstall-pre
+-   pre-uninstall-post
 
-#### Order
+#### order
 
-- Pre (source)
-- Hook (run)
-- Source (source)
-- Post (source)
+-   Pre (source)
+-   Hook (run)
+-   Source (source)
+-   Post (source)

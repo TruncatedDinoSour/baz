@@ -1,51 +1,56 @@
-# Baz
+# baz
 
-> A lightweight plugin manager for GNU bash
+> a fast, easy, simple and lightweight plugin manager for GNU bash
 
-# Source code
+# source code
 
--   [/baz](/baz) -- The plugin manager
--   [/loader.sht](/loader.sht) -- The baz plugin loader
+-   [/baz](/baz) -- the plugin manager
+-   [/loader.sht](/loader.sht) -- the baz plugin loader
 
-# Credits
+# credits
 
--   [@DannyBen](https://github.com/DannyBen) -- For creating an awesome tool for completion: https://github.com/DannyBen/completely
+-   [@DannyBen](https://github.com/DannyBen) -- for creating an awesome tool for completion: https://github.com/DannyBen/completely
 
-# Dependencies
+# dependencies
 
--   Coreutils
+-   coreutils
 -   BASH
--   Git cli
--   Rlwrap (optional, but it's nice for special keys)
--   Bash-completion (optional, but it's nice for well.. Completion)
+-   git cli
+-   rlwrap (optional, but it's nice for special keys)
+-   bash-completion (optional, but it's nice for well ... Completion)
 
-# Why `baz`
+but you probably have all of them, maybe not `git`, but a lot of people do
 
--   Fast
-    -   <https://blog.ari-web.xyz/b/comparison-between-the-oh-my-bash-and-baz-plugin-managers-for-gnu-bash/>
--   Easy
--   Small
--   Simple
--   Flexible
--   Minimalistic
--   Cross platform
-    -   Linux
-        -   Gentoo
-        -   Void
-        -   Debian
-        -   Ubuntu
-        -   Arch
+# why `baz`
+
+-   fast
+    -   or at least faster than oh-my-bash and sheldon ( a plugin manager writen in rust ) : <https://blog.ari-web.xyz/b/comparison-between-the-oh-my-bash-and-baz-plugin-managers-for-gnu-bash/>
+-   easy
+-   small
+-   simple
+-   minimal
+-   cross platform
+    -   linux
+        -   gentoo
+        -   void
+        -   debian
+        -   ubuntu
+        -   arch
+        -   ...
     -   BSD
         -   FreeBSD
         -   OpenBSD
-    -   Windows
-        -   Git BASH
-        -   Windows subsystem for Linux (WSL)
+        -   ...
+    -   windows
+        -   git BASH
+        -   windows subsystem for Linux ( WSL )
+        -   wherever you can get BASH on
+    -   macos most likely too
 -   GPLv3 licensing
 
-# Automatic setup
+# automatic setup
 
-This script hosted on my files site will set up
+this script hosted on my files site will set up
 baz automatically, but it might be unstable
 
 ```bash
@@ -54,44 +59,45 @@ $ curl -o baz_setup.sh 'https://files.ari-web.xyz/files/baz_setup.sh'
 $ bash baz_setup.sh
 ```
 
-Configuration:
+script configuration :
 
--   `__BASH_RUNAS`: The `sudo` program (sudo)
--   `PREFIX`: Where to install baz (/usr/bin)
+-   `__BASH_RUNAS`: the `sudo` program ( `sudo` )
+-   `PREFIX`: where to install `baz` to ( `/usr/bin` )
+-   plus the normal vars like `BAZ_LOGGING_ENABLED`
 
-# Plugin indexing
+# plugin indexing
 
-You can leave a link to it in the [PLUGINS.md](/PLUGINS.md) file :)
+you can leave a link to it in the [PLUGINS.md](/PLUGINS.md) file :)
 
-# Setup
+# setup
 
--   Clone the repo
+-   clone the repo
 
 ```bash
 $ git clone 'https://ari-web.xyz/gh/baz'
 ```
 
--   If you want debug logging support in the loader run this:
+-   if you want debug logging support in the loader run this :
 
 ```sh
 export BAZ_LOGGING_ENABLED=1
 ```
 
--   If non-zero (it's normal dw) exit codes bother you on the loader run this:
+-   if non-zero ( `its normal dw` ) exit codes bother you on the loader run this :
 
 ```sh
 export BAZ_ENSURE_OK=1
 ```
 
--   Install the script anywhere, or even run it standalone
-    -   Running standalone means just running it
-    -   Installing could be done in for example `/usr/local/bin`:
+-   install the script anywhere, or even run it standalone
+    -   running standalone means just running it
+    -   installing could be done in for example `/usr/local/bin`:
 
 ```bash
 $ su -c 'install -Dm755 baz /usr/local/bin'
 ```
 
--   Setup
+-   setup
 
 ```bash
 $ baz setup
@@ -103,7 +109,7 @@ Or
 $ ./baz setup
 ```
 
--   Add this to your `~/.bashrc`:
+-   add this to your `~/.bashrc` :
 
 ```bash
 export BAZ_LOADER_ENABLED=true
@@ -112,15 +118,15 @@ _baz_loader="$HOME/.local/share/baz/loader.sh"
 [ ! -f "$_baz_loader" ] || source "$_baz_loader"
 ```
 
-This is the main loader for plugins
+this is the main loader for plugins
 
-# Installing completion
+# installing completion
 
 ```bash
 $ ./scripts/comp.sh
 ```
 
-# Uninstallation
+# uninstallation
 
 Uninstall the `baz` binaries and then just run:
 
@@ -128,40 +134,40 @@ Uninstall the `baz` binaries and then just run:
 $ sudo rm -rf ~/.local/share/baz*
 ```
 
-# Help page
+# help page
 
 ```bash
 $ baz help
 ```
 
-# Upgrading
+# upgrading
 
 Just upgrade your package or pull the repo
-and run:
+and run :
 
 ```bash
 $ ./baz upgrade
 ```
 
-And if you also have completion, rerun the completion
-script:
+and if you also have completion, rerun the completion
+script :
 
 ```bash
 $ ./scripts/comp.sh
 ```
 
-# Other docs
+# other docs
 
--   [Doc folder](/doc)
+-   [doc folder](/doc)
 
-# Examples
+# examples
 
--   [Examples folder](/examples)
--   [My example plugin repo](https://github.com/TruncatedDinosour/baz-example-plugin)
+-   [examples folder](/examples)
+-   [my example plugin repo](https://github.com/TruncatedDinosour/baz-example-plugin)
 
-# Debugging
+# debugging
 
--   Set `BAZ_DEBUG` to any value to any value to debug the `baz` cli with tracing
--   Set `BAZ_DEBUG_LOAD` to any value to debug the loader
-    -   This only works if `BAZ_LOGGING_ENABLED` was set during setup time
--   Add `set -x` before and `set +x` after the loader to enable tracing
+-   set `BAZ_DEBUG` to any value to any value to debug the `baz` cli with tracing
+-   set `BAZ_DEBUG_LOAD` to any value to debug the loader
+    -   this only works if `BAZ_LOGGING_ENABLED` was set during setup time
+-   add `set -x` before and `set +x` after the loader to enable tracing

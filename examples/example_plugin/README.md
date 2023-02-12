@@ -1,6 +1,6 @@
-# Example baz plugin
+# example baz plugin
 
-## Quick start
+## quick start
 
 ```sh
 baz install local examples/example_plugin

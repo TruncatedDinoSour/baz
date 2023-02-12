@@ -2,7 +2,7 @@
 
 # #{_} => preprocessor macro expansion
 
-# before anything, I'm very sorry about these `local` things, bash
+# before anything, im very sorry about these `local` things, bash
 # is sometimes trash, this is one example of bash handling clearly
 # local variables like globals
 
@@ -21,11 +21,11 @@ _baz_load_envs() {
     for _baz_env in "$_baz_env"/*; do
         #{BAZ_LOG} "loading env variable '$_baz_env'"
 
-        # To avoid forking, I'm using read
+        # to avoid forking, im using read
         #{BAZ_RD} _env <"$_baz_env"
 
-        # Could we optimise these read calls without subshells? Ref ^
-        # Basically, can we turn this into a single call ?
+        # could we optimise these read calls without subshells ? ref ^
+        # basically, can we turn this into a single call ?
         eval "#{BAZ_RD} _env<<#{BAZ_RDELIM}
 $_env
 #{BAZ_RDELIM}"
@@ -132,10 +132,10 @@ baz_load_plugin_low() {
     . "$1/baz.env"
     local p="$1/$BAZP_SRC"
 
-    # Having everything inline helps with performance,
+    # having everything inline helps with performance,
     # although reduces maintainablity
 
-    # We could also inline the function calls, but I think it's
+    # we could also inline the function calls, but i think its
     # too unmaintainable at that point
 
     _baz_load_envs "$p"
@@ -147,7 +147,7 @@ baz_load_plugin_low() {
     _baz_load_keybinds "$p"
 }
 
-# Mid level all plugins loader
+# mid level all plugins loader
 baz_loader() {
     local p=('#{BAZ_PLUG_DIR}'/*)
 

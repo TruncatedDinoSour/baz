@@ -1,17 +1,17 @@
-# Sanitization
+# sanitization
 
-> I hate regex, it's such a pain
+> i hate regex, its such a pain
 >
 > - Me, developing baz_sanitize function
 
-Basically, this sanitises a lot,
+basically, this sanitises stuff,
 this is what is not allowed
 
-- Any whitespace
-- Characters: ", ', ~, !, #, \, /, $, %, ^, &, \*, (, ), =
-- Repeating `..`s
+- any whitespace
+- characters : ", ', ~, !, #, \, /, $, %, ^, &, \*, (, ), =
+- repeating `..`s
 
-Regex (sed syntax):
+regex ( sed syntax ):
 
 ```sed
 s/\s*//g; s/[\"\'~\!#\\\/\$%\^&\*\(\)\=]//g; s/\.\.//g

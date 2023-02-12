@@ -2,4 +2,4 @@
 
 set -e
 
-echo ' :: Pre-install hook example'
+echo ' :: pre-install hook example'

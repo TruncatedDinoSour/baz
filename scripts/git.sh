@@ -3,11 +3,11 @@
 set -e
 
 main() {
-    echo 'Did you change the version??'
-    printf 'Press enter to mean yes'
+    echo 'did you change the version ??'
+    printf 'press enter to mean yes'
     read -r _
 
-    echo 'Okay.. I will sleep for couple of seconds just in case'
+    echo 'okay ... i will sleep for couple of seconds just in case'
     sleep 4s
 
     git add -A
