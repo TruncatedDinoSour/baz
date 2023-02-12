@@ -44,7 +44,7 @@ _baz_load_commands() {
 
     #{BAZ_LOG} "making '$BAZP_NAME' commands executable"
 
-    chmod -- 755 "$_cmd_dir"/*
+    chmod -- 700 "$_cmd_dir"/*
 }
 
 _baz_load_functions() {
@@ -87,7 +87,7 @@ _baz_load_runners() {
     [ -d "$_baz_runner" ] || return
 
     for _baz_runner in "$_baz_runner"/*; do
-        #{BAZ_LOG} "starting runner: '$_baz_runner'"
+        #{BAZ_LOG} "starting runner : '$_baz_runner'"
         . "$_baz_runner"
     done
 }
@@ -99,7 +99,7 @@ _baz_load_completions() {
     [ -d "$_baz_completion" ] || return
 
     for _baz_completion in "$_baz_completion"/*; do
-        #{BAZ_LOG} "adding completion: '$_baz_completion'"
+        #{BAZ_LOG} "adding completion : '$_baz_completion'"
 
         read -r _baz_completions_first_line <"$_baz_completion"
 
@@ -123,7 +123,7 @@ _baz_load_keybinds() {
     #{BAZ_LOG} 'loading contexed keybinds'
 
     for _baz_bind in "$_baz_bind"/*; do
-        #{BAZ_LOG} "loading keybinds for context: $_baz_bind"
+        #{BAZ_LOG} "loading keybinds for context : $_baz_bind"
         bind -m "${_baz_bind##*/}" -f "$_baz_bind"
     done
 }
@@ -155,7 +155,7 @@ baz_loader() {
 
     [ -d "${p[0]}" ] || return 1
 
-    #{BAZ_LOG} 'loading baz from data dir: #{BAZ_DATA_DIR}'
+    #{BAZ_LOG} 'loading baz from data dir : #{BAZ_DATA_DIR}'
 
     for p in "${p[@]}"; do
         [ -e "$p/disabled" ] || [ ! -f "$p/baz.env" ] && continue
