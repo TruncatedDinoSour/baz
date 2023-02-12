@@ -1,20 +1,56 @@
-# Some baz plugins :)
+# some baz plugins :)
 
--   [Example plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/baz-example-plugin) [Name:example License:WTFPL]
--   [Shortcmd plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/shortcmd-baz-plugin) [Name:shortcmd-baz-plugin License:WTFPL]
--   [Coffee theme plugin by @coffee-theme](https://github.com/coffee-theme/coffee.baz-plugin) [Name:coffee.baz-plugin License:WTFPL]
--   [Coloured man pages plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/coloured-man-pages-plugin) [Name:coloured-man-pages-plugin License:WTFPL]
--   [Better bash plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/better-bash-baz-plugin) [Name:better-bash-baz-plugin License:WTFPL]
--   [Ls aliases by @TruncatedDinosour](https://github.com/TruncatedDinosour/ls-aliases-baz-plugin) [Name:ls-aliases-baz-plugin License:WTFPL]
--   [Vifzf bindings by @TruncatedDinosour](https://github.com/TruncatedDinosour/vifzf-keybinds-baz-plugin) [Name:vifzf-keybinds-baz-plugin License:WTFPL]
--   [Coffee TTY theme plugin by @coffee-theme](https://github.com/coffee-theme/coffee.tty-theme) [Name:coffee.tty-theme License:WTFPL]
--   [Venvin virtualenv helper plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/venvin-baz-plugin) [Name:venvin-baz-plugin License:WTFPL]
--   [Trash CLI aliases plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/trash-cli-rm-baz) [Name:trash-cli-rm-baz License:WTFPL]
--   [YT-dlp aliases plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/yt-dlp-aliases-baz-plugin) [Name:yt-dlp-aliases-baz-plugin License:WTFPL]
--   [Bettercmd plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/bettercmd-baz-plugin) [Name:bettercmd-baz-plugin License:WTFPL]
--   [Cmdutils plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/cmdutils-baz-plugin) [Name:cmdutils-baz-plugin License:WTFPL]
--   [Agnoster theme by @TruncatedDinosour](https://github.com/TruncatedDinosour/agnoster-theme-baz-plugin) [Name:agnoster-theme-baz-plugin License:MIT,MIT]
--   [Git aliases by @TruncatedDinosour](https://github.com/TruncatedDinosour/git-aliases-plugin) [Name:git-aliases-plugin License:WTFPL]
--   [Mpvp-report plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/mpvp-report) [Name:mpvp-report License:gpl3]
--   [Baz-extra-plugin-fns plugin by @TruncatedDinosour](https://github.com/TruncatedDinosour/baz-extra-plugin-fns) [Name:baz-extra-plugin-fns License:gpl3]
--   [Unifetch plugin by @Jin-Asanami](https://github.com/Jin-Asanami/unifetch) [Name:unifetch License:MIT]
+-   example plugin by @TruncatedDinosour -- <https://github.com/TruncatedDinosour/baz-example-plugin>
+    -   name : example
+    -   license : WTFPL
+-   shortcmd plugin by @TruncatedDinosour -- <https://github.com/TruncatedDinosour/shortcmd-baz-plugin>
+    -   name : shortcmd-baz-plugin
+    -   license : WTFPL
+-   coffee theme plugin by @coffee-theme -- <https://github.com/coffee-theme/coffee.baz-plugin>
+    -   name : coffee.baz-plugin
+    -   license : WTFPL
+-   coloured man pages plugin by @TruncatedDinosour -- <https://github.com/TruncatedDinosour/coloured-man-pages-plugin>
+    -   name : coloured-man-pages-plugin
+    -   license : WTFPL
+-   better bash plugin by @TruncatedDinosour -- <https://github.com/TruncatedDinosour/better-bash-baz-plugin>
+    -   name : better-bash-baz-plugin
+    -   license : WTFPL
+-   ls aliases by @TruncatedDinosour -- <https://github.com/TruncatedDinosour/ls-aliases-baz-plugin>
+    -   name : ls-aliases-baz-plugin
+    -   license : WTFPL
+-   vifzf bindings by @TruncatedDinosour -- <https://github.com/TruncatedDinosour/vifzf-keybinds-baz-plugin>
+    -   name : vifzf-keybinds-baz-plugin
+    -   license : WTFPL
+-   coffee TTY theme plugin by @coffee-theme -- <https://github.com/coffee-theme/coffee.tty-theme>
+    -   name : coffee.tty-theme
+    -   license : WTFPL
+-   venvin virtualenv helper plugin by @TruncatedDinosour -- <https://github.com/TruncatedDinosour/venvin-baz-plugin>
+    -   name : venvin-baz-plugin
+    -   license : WTFPL
+-   trash CLI aliases plugin by @TruncatedDinosour -- <https://github.com/TruncatedDinosour/trash-cli-rm-baz>
+    -   name : trash-cli-rm-baz
+    -   license : WTFPL
+-   yt-dlp aliases plugin by @TruncatedDinosour -- <https://github.com/TruncatedDinosour/yt-dlp-aliases-baz-plugin>
+    -   name : yt-dlp-aliases-baz-plugin
+    -   license : WTFPL
+-   bettercmd plugin by @TruncatedDinosour -- <https://github.com/TruncatedDinosour/bettercmd-baz-plugin>
+    -   name : bettercmd-baz-plugin
+    -   license : WTFPL
+-   agnoster theme by @TruncatedDinosour -- <https://github.com/TruncatedDinosour/agnoster-theme-baz-plugin>
+    -   name : agnoster-theme-baz-plugin
+    -   license : MIT,MIT
+-   git aliases by @TruncatedDinosour -- <https://github.com/TruncatedDinosour/git-aliases-plugin>
+    -   name : git-aliases-plugin
+    -   license : WTFPL
+-   mpvp-report plugin by @TruncatedDinosour -- <https://github.com/TruncatedDinosour/mpvp-report>
+    -   name : mpvp-report
+    -   license : gpl3
+-   baz-extra-plugin-fns plugin by @TruncatedDinosour -- <https://github.com/TruncatedDinosour/baz-extra-plugin-fns>
+    -   name : baz-extra-plugin-fns
+    -   license : gpl3
+-   unifetch plugin by @Jin-Asanami -- <https://github.com/Jin-Asanami/unifetch>
+    -   name : unifetch
+    -   license : MIT
+-   yafetch plugin by @TruncatedDinosour,@yrwq -- <https://ari-web.xyz/gh/yafetch>
+    -   name : yafetch
+    -   license : MIT
