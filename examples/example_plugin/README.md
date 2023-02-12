@@ -1,4 +1,4 @@
-# example baz plugin
+# an example baz plugin
 
 ## quick start
 

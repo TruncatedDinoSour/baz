@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='6.0.0'
+export BAZ_VERSION='6.1.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -132,10 +132,16 @@ baz_update_plugin_git() {
     git remote update --prune >/dev/null 2>&1
 
     if git status -uno | grep -iq behind; then
+        git checkout FETCH_HEAD "$BAZP_INDEX" --quiet
+
         bazp_reset_env
         . "$BAZP_INDEX"
         bazp_check_env
         new_ver="$BAZP_VER"
+
+        bazp_reset_env
+        git checkout HEAD "$BAZP_INDEX" --quiet
+        . "$BAZP_INDEX"
 
         BAZP_NO_LOG=false
 
@@ -144,7 +150,6 @@ baz_update_plugin_git() {
 
             baz_run_hook 'pre-update'
             git merge -X theirs origin --quiet --all
-
             baz_run_hook 'post-update'
         fi
     fi
