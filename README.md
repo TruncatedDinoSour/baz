@@ -54,7 +54,19 @@ this script hosted on my files site will set up
 baz automatically, but it might be unstable
 
 ```bash
-$ curl -fL 'https://ari-web.xyz/gh/baz/raw/main/scripts/baz_setup.sh' | bash -
+$ cd /tmp
+
+$ curl -fL 'https://ari-web.xyz/gh/baz/raw/main/scripts/baz_setup.sh' -o baz_setup.sh
+
+$ bash baz_setup.sh
+
+$ rm -f -- baz_setup.sh
+```
+
+or
+
+```sh
+cd /tmp && curl -fL 'https://ari-web.xyz/gh/baz/raw/main/scripts/baz_setup.sh' -o baz_setup.sh && bash baz_setup.sh && rm -f -- baz_setup.sh
 ```
 
 script configuration :
