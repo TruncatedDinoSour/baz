@@ -15,51 +15,49 @@ export BAZ_LOADER_VERSION='#{BAZ_VER}'
 _baz_load_envs() {
     #{BAZ_LOG} "loading environment variables from '$BAZP_NAME'"
 
-    local _baz_env="$1/environments" _env
-    [ -d "$_baz_env" ] || return
+    local f="$1/environments" e
 
-    for _baz_env in "$_baz_env"/*; do
-        #{BAZ_LOG} "loading env variable '$_baz_env'"
+    [ -d "$f" ] && for f in "$f"/*; do
+        #{BAZ_LOG} "loading env variable '$f'"
 
         # to avoid forking, im using read
-        #{BAZ_RD} _env <"$_baz_env"
+        #{BAZ_RD} e <"$f"
 
         # could we optimise these read calls without subshells ? ref ^
         # basically, can we turn this into a single call ?
-        eval "#{BAZ_RD} _env<<#{BAZ_RDELIM}
-$_env
+        eval "#{BAZ_RD} e<<#{BAZ_RDELIM}
+$e
 #{BAZ_RDELIM}"
 
-        export "${_baz_env##*/}"="$_env"
+        export "${f##*/}"="$e"
     done
 }
 
 _baz_load_commands() {
     #{BAZ_LOG} "adding '$BAZP_NAME' commands to PATH"
 
-    local _cmd_dir="$1/commands"
-    [ -d "$_cmd_dir" ] || return
+    local d="$1/commands"
+    [ -d "$d" ] || return
 
-    export PATH="$PATH:$_cmd_dir"
+    export PATH="$d:$PATH"
 
     #{BAZ_LOG} "making '$BAZP_NAME' commands executable"
 
-    chmod -- 700 "$_cmd_dir"/*
+    chmod -- 700 "$d"/*
 }
 
 _baz_load_functions() {
     #{BAZ_LOG} "loading functions from '$BAZP_NAME'"
 
-    local _baz_func="$1/functions" _func
-    [ -d "$_baz_func" ] || return
+    local f="$1/functions" c
 
-    for _baz_func in "$_baz_func"/*; do
-        #{BAZ_LOG} "loading function '$_baz_func'"
+    [ -d "$f" ] && for f in "$1"/functions/*; do
+        #{BAZ_LOG} "loading function '$f'"
 
-        #{BAZ_RD} _func <"$_baz_func"
+        #{BAZ_RD} c <"$f"
 
-        eval "function ${_baz_func##*/}(){
-            $_func
+        eval "function ${f##*/}(){
+            $c
         }"
     done
 }
@@ -67,64 +65,54 @@ _baz_load_functions() {
 _baz_load_aliases() {
     #{BAZ_LOG} "loading aliases from '$BAZP_NAME'"
 
-    local _baz_alias="$1/aliases" _alias
-    [ -d "$_baz_alias" ] || return
+    local f="$1/aliases" a
+    [ -d "$f" ] && for f in "$f"/*; do
+        #{BAZ_LOG} "loading alias '$f'"
 
-    for _baz_alias in "$_baz_alias"/*; do
-        #{BAZ_LOG} "loading alias '$_baz_alias'"
-
-        #{BAZ_RD} _alias <"$_baz_alias"
+        #{BAZ_RD} a <"$f"
 
         # shellcheck disable=SC2139
-        alias "${_baz_alias##*/}"="$_alias"
+        alias "${f##*/}"="$a"
     done
 }
 
 _baz_load_runners() {
     #{BAZ_LOG} "running runners in '$BAZP_NAME'"
 
-    local _baz_runner="$1/runners"
-    [ -d "$_baz_runner" ] || return
-
-    for _baz_runner in "$_baz_runner"/*; do
-        #{BAZ_LOG} "starting runner : '$_baz_runner'"
-        . "$_baz_runner"
+    local f="$1/runners"
+    [ -d "$f" ] && for f in "$f"/*; do
+        #{BAZ_LOG} "starting runner : '$f'"
+        . "$f"
     done
 }
 
 _baz_load_completions() {
     #{BAZ_LOG} "adding completions from '$BAZP_NAME'"
 
-    local _baz_completion="$1/completions" _baz_completions_first_line
-    [ -d "$_baz_completion" ] || return
+    local f="$1/completions" c
+    [ -d "$f" ] && for f in "$f"/*; do
+        #{BAZ_LOG} "adding completion : '$f'"
 
-    for _baz_completion in "$_baz_completion"/*; do
-        #{BAZ_LOG} "adding completion : '$_baz_completion'"
+        read -r c <"$f"
 
-        read -r _baz_completions_first_line <"$_baz_completion"
-
-        complete -F "$_baz_completions_first_line" -o bashdefault -o default "${_baz_completion##*/}"
+        complete -F "$c" -o bashdefault -o default "${f##*/}"
     done
 }
 
 _baz_load_keybinds() {
     #{BAZ_LOG} "loading readline keybinds from '$BAZP_NAME'"
 
-    local _baz_bind="$1/keybinds"
-    local _all_keybinds="$_baz_bind/all.rl" _baz_bind="$_baz_bind/bindings"
+    local f="$1/keybinds"
+    local k="$f/all.rl" f="$f/bindings"
 
-    if [ -f "$_all_keybinds" ]; then
+    if [ -f "$k" ]; then
         #{BAZ_LOG} 'loading full-context keybinds'
-        bind -f "$_all_keybinds"
+        bind -f "$k"
     fi
 
-    [ -d "$_baz_bind" ] || return
-
-    #{BAZ_LOG} 'loading contexed keybinds'
-
-    for _baz_bind in "$_baz_bind"/*; do
-        #{BAZ_LOG} "loading keybinds for context : $_baz_bind"
-        bind -m "${_baz_bind##*/}" -f "$_baz_bind"
+    [ -d "$f" ] && for f in "$f"/*; do
+        #{BAZ_LOG} "loading keybinds for context : $f"
+        bind -m "${f##*/}" -f "$f"
     done
 }
 
@@ -158,11 +146,11 @@ baz_loader() {
     #{BAZ_LOG} 'loading baz from data dir : #{BAZ_DATA_DIR}'
 
     for p in "${p[@]}"; do
-        [ -e "$p/disabled" ] || [ ! -f "$p/baz.env" ] && continue
-
-        #{BAZ_LOG}
-        baz_load_plugin_low "$p"
-        #{BAZ_LOG}
+        if [ ! -e "$p/disabled" ] && [ -f "$p/baz.env" ]; then
+            #{BAZ_LOG}
+            baz_load_plugin_low "$p"
+            #{BAZ_LOG}
+        fi
     done
 
     #{BAZ_NOP}
