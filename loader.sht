@@ -51,7 +51,7 @@ _baz_load_functions() {
 
     local f="$1/functions" c
 
-    [ -d "$f" ] && for f in "$1"/functions/*; do
+    [ -d "$f" ] && for f in "$f"/*; do
         #{BAZ_LOG} "loading function '$f'"
 
         #{BAZ_RD} c <"$f"
