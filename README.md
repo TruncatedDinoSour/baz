@@ -45,6 +45,7 @@ but you probably have all of them, maybe not `git`, but a lot of people do
         -   git BASH
         -   windows subsystem for Linux ( WSL )
         -   wherever you can get BASH on
+    -   android
     -   macos most likely too
 -   GPLv3 licensing
 
