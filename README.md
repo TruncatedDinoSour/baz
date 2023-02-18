@@ -1,4 +1,6 @@
-# baz
+<p align="center">
+    <img src="/logo.png" alt="baz" />
+</p>
 
 > a fast, easy, simple and lightweight plugin manager for GNU bash
 
