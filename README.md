@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="/logo.png" alt="baz" />
+    <h1><img src="/logo.png" alt="baz" /></h1>
 </p>
 
 > a fast, easy, simple and lightweight plugin manager for GNU bash
@@ -7,7 +7,8 @@
 # source code
 
 -   [/baz](/baz) -- the plugin manager
--   [/loader.sht](/loader.sht) -- the baz plugin loader
+-   [/loader/](/loader/)-- the baz plugin loader files
+-   [/loader.sht](/loader.sht)-- the pure bash baz plugin loader
 
 # credits
 
@@ -18,8 +19,9 @@
 -   coreutils
 -   BASH
 -   git cli
--   rlwrap (optional, but it's nice for special keys)
--   bash-completion (optional, but it's nice for well ... Completion)
+-   optionally any c compiler ( to use the c loader insread of the bash one )
+-   rlwrap ( optional, but its nice for special keys )
+-   bash-completion ( optional, but its nice for well ... completion )
 
 but you probably have all of them, maybe not `git`, but a lot of people do
 
@@ -48,7 +50,9 @@ but you probably have all of them, maybe not `git`, but a lot of people do
         -   windows subsystem for Linux ( WSL )
         -   wherever you can get BASH on
     -   android
-    -   macos most likely too
+    -   most likely ( needs testing, please contribute if you have the resources to do so :) )
+        - macOS
+        - iOS
 -   GPLv3 licensing
 
 # automatic setup
@@ -76,7 +80,7 @@ script configuration :
 
 -   `__BASH_RUNAS`: the `sudo` program ( `sudo` )
 -   `PREFIX`: where to install `baz` to ( `/usr/bin` )
--   plus the normal vars like `BAZ_LOGGING_ENABLED`
+-   plus the [normal vars](#setup) like `BAZ_LOGGING_ENABLED`
 
 # plugin indexing
 
@@ -90,16 +94,46 @@ you can leave a link to it in the [PLUGINS.md](/PLUGINS.md) file :)
 $ git clone 'https://ari-web.xyz/gh/baz'
 ```
 
--   if you want debug logging support in the loader run this :
+-   if you want logging enabled
 
 ```sh
 export BAZ_LOGGING_ENABLED=1
 ```
 
--   if non-zero ( `its normal dw` ) exit codes bother you on the loader run this :
+-   if non-zero ( _its normal dw_ ) exit codes bother you on the loader run this :
 
 ```sh
 export BAZ_ENSURE_OK=1
+```
+
+-   if you never want to use the C loader
+
+```sh
+export BAZ_NO_CC=1
+```
+
+-   set the c compiler ( has to at least support `-o <outfile>` and `-D MACRO="value"` flags )
+
+```sh
+export CC='clang'
+```
+
+-   set the c flags
+
+```sh
+export CFLAGS='-O3 -s'
+```
+
+-   set the stripper ( if none is set the binary wont be stripped )
+
+```sh
+export STRIP='llvm-strip'
+```
+
+-   set the stripper flags
+
+```sh
+export STRIPFLAGS='--remove-section=.note --strip-all'
 ```
 
 -   install the script anywhere, or even run it standalone
@@ -143,7 +177,7 @@ $ ./scripts/comp.sh
 
 Uninstall the `baz` binaries and then just run:
 
-```
+```sh
 $ sudo rm -rf ~/.local/share/baz*
 ```
 

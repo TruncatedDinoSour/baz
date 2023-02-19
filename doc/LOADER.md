@@ -4,7 +4,7 @@
 
 ## environment variables
 
-there should be at least these two environment variables :
+there should be at least these environment variables :
 
 -   `BAZ_LOADER_VERSION` -- your `baz` plugin loader version, should be the same as `baz` version
 

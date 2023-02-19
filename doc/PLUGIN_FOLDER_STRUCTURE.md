@@ -69,6 +69,12 @@ commands/
 
 and it has the same naming rules as aliases
 
+expands to
+
+```sh
+export PATH="/path/to/commands:$PATH"
+```
+
 ### plugin/completions
 
 this directory should include all completions
