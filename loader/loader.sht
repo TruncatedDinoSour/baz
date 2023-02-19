@@ -4,8 +4,7 @@ export BAZ_LOADER_VERSION='#{BAZ_VER}'
 
 baz_load_plugin_low() {
     . "$1/baz.env"
-    local p="$1/$BAZP_SRC"
-    eval "$(:BAZ_LOADER_CMD "$p")"
+    eval "$(:BAZ_LOADER_CMD "$1/$BAZP_SRC")"
 }
 
 baz_loader() {
