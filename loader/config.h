@@ -15,6 +15,5 @@
 #define DEBUG_LOAD         "BAZ_DEBUG_LOAD"
 #define LOGGING_FN         ".1"
 #define LOGGING_FN_DEF     LOGGING_FN "(){ echo \"" LOGGING " $1\">&2;}"
-#define NUM_MAX_LEN        12
 #define STR_GROWTH         32
 #endif /* _CONFIG_H */
