@@ -1,7 +1,5 @@
 #include "config.h"
 
-/* #define _POSIX_C_SOURCE 1 */
-
 #define FILE_NO_STDDEF
 #define STR_NO_STDDEF
 #define PATH_NO_LIBS
@@ -70,7 +68,7 @@ void load_envs(char *path) {
         log(path);
 
         printf("read -rd '' %s<<" DELIM "\n"
-               "%s\n" DELIM "\nexport '%s'=\"${%s%%$'\\n'}\"\n",
+               "%s\n" DELIM "\nexport %s=\"${%s%%\n}\"\n",
                ep->d_name, f.content, ep->d_name, ep->d_name);
 
         close_file(&f);
@@ -226,9 +224,8 @@ void load_completions(char *path) {
         strcat(path, ep->d_name);
 
         log(path);
-        printf(
-            "read -r c<'%s'\ncomplete -F \"$c\" bashdefault -o default '%s'\n",
-            path, (basename = get_base(path)));
+        printf("read -r c<%s\ncomplete -F \"$c\" bashdefault -o default %s\n",
+               path, (basename = get_base(path)));
         free(basename);
 
         path[comps_base] = '\0';
@@ -279,7 +276,7 @@ void load_keybinds(char *path) {
 
         log(path);
 
-        printf("bind -m '%s' -f '%s'\n", (basename = get_base(path)), path);
+        printf("bind -m %s -f %s\n", (basename = get_base(path)), path);
         free(basename);
 
         path[keys_base] = '\0';

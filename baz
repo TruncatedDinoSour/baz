@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='6.2.0'
+export BAZ_VERSION='7.0.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -32,18 +32,28 @@ export BAZ_LOADER_PROG_BIN="$BAZ_DIR/load"
 
 export BAZ_LOGGING_HEADER='[BAZ_LOAD]'
 
-export BAZ_CACHE_DIR="$HOME/.cache/baz"
-
 # helpers
 
-entry() { printf " + %-40s%s\n" "$1" "$2"; }
-log() { [ "$BAZP_NO_LOG" = true ] || ${2:-echo} " * $1"; }
-elog() { log "$1" >&2; }
-eecho() { [ "$BAZP_NO_LOG" = true ] || echo "$1" >&2; }
-unexpand_path() { echo "${1/"$HOME"/"${2:-~}"}"; }
-baz_git_clone() { git clone --quiet --recursive -- "$1" "$2"; }
+baz_entry() { printf " + %-50s%s\n" "$1" "$2"; }
+baz_log() {
+    [ "$BAZP_NO_LOG" = true ] && return
+    [ "$2" = printf ] && printf ' * %s' "$1" && return
+    ${2:-echo} " * $1"
+}
+baz_elog() { baz_log "$1" >&2; }
+baz_eecho() { [ "$BAZP_NO_LOG" = true ] || echo "$1" >&2; }
+baz_unexpand_path() { echo "${1/"$HOME"/"${2:-~}"}"; }
+baz_indent() { sed 's/^/  /g'; }
 
-get_base() {
+baz_git() { git "$1" --quiet "${@:2}" 2>/dev/null; }
+baz_git_clone() { baz_git clone --recursive -- "$1" "$2"; }
+baz_git_reset() { baz_git reset --hard; }
+baz_git_env() {
+    baz_git checkout HEAD --force -- "$BAZP_INDEX"
+    bazp_source_env
+}
+
+baz_get_base() {
     set -- "${1%"${1##*[!/]}"}"
     echo "${1##*/}"
 }
@@ -58,7 +68,7 @@ baz_hook() {
     local hook="${BAZP_SRC:?}/hooks/$1"
 
     if [ -f "$hook" ]; then
-        BAZP_NO_LOG=false log "$2: $1"
+        BAZP_NO_LOG=false baz_log "$2: $1"
         "$3" "$hook"
     fi
 }
@@ -76,10 +86,10 @@ baz_run_hook() {
     return 0
 }
 
-in_array() {
+baz_in_array() {
     for element in $1; do
         if [[ $2 =~ $element ]]; then
-            log "'$2' matches element : $element"
+            baz_log "'$2' matches element : $element"
             return 0
         fi
     done
@@ -87,79 +97,68 @@ in_array() {
     return 1
 }
 
-indent() {
-    while IFS=$'\n' read -r line; do
-        echo "  $line"
-    done
+baz_error() {
+    baz_elog "error : $1"
+    exit 1
 }
 
-use() {
+baz_use() {
     for dep in "$@"; do
         if ! command -v -- "$dep" >/dev/null; then
             case "${do_error:-}" in
             no) return 1 ;;
-            *) error "required dependency not installed : $dep" ;;
+            *) baz_error "required dependency not installed : $dep" ;;
             esac
         fi
     done
 }
 
-error() {
-    elog "error : $1"
-    exit 1
-}
-
-yn() {
-    printf ' [y / N] %s\n >> ' "$1"
+baz_yn() {
+    printf ' [yN] %s\n >> ' "$1"
     read -r ans
     [ "$ans" = 'y' ]
 }
 
-check_plugin_state() {
+baz_check_plugin_state() {
     plugin="$(echo "$plugin" | baz_sanitize)"
 
     if [ ! "$plugin" ]; then
         [ "$1" ] && : >"$1"
-        error 'no plugins supplied'
+        baz_error 'no plugins supplied'
     fi
 
     if [ ! -d "${BAZ_PLUGDIR:?}/$plugin" ]; then
         [ "$1" ] && : >"$1"
-        error "plugin '$plugin' not installed"
+        baz_error "plugin '$plugin' not installed"
     fi
 }
 
 baz_update_plugin_git() {
-    . "$BAZP_INDEX"
-
-    BAZP_NO_LOG=true
+    baz_git_env
 
     bazp_check_env
     old_ver="$BAZP_VER"
 
-    git reset --quiet --hard
+    baz_git_reset
     git remote update --prune >/dev/null 2>&1
 
     if git status -uno | grep -iq behind; then
-        git checkout FETCH_HEAD "$BAZP_INDEX" --quiet
+        baz_git checkout FETCH_HEAD --force -- "$BAZP_INDEX"
 
-        bazp_reset_env
-        . "$BAZP_INDEX"
-        bazp_check_env
+        bazp_source_env
         new_ver="$BAZP_VER"
 
-        bazp_reset_env
-        git checkout HEAD "$BAZP_INDEX" --quiet
-        . "$BAZP_INDEX"
-
-        BAZP_NO_LOG=false
+        baz_git_env
 
         if [ "$new_ver" != "$old_ver" ]; then
-            log "updating '$1' from v$old_ver -> v$new_ver"
+            baz_log "updating '$1' from v$old_ver -> v$new_ver"
 
             baz_run_hook 'pre-update'
-            git merge -X theirs origin --quiet --all
+            baz_git merge -X theirs origin --all
+            baz_git submodule update --init --recursive --remote --merge --force
             baz_run_hook 'post-update'
+
+            bazp_source_env
         fi
     fi
 
@@ -170,13 +169,10 @@ baz_update_plugin_local() {
     origin="$(head -n 1 origin)"
     local_bazp="$origin/$BAZP_INDEX"
 
-    [ -d "$origin" ] || error "origin $origin does not exist for plugin '$1'"
-    [ -f "$local_bazp" ] || error "no $BAZP_INDEX in $origin for plugin '$1'"
+    [ -d "$origin" ] || baz_error "origin $origin does not exist for plugin '$1'"
+    [ -f "$local_bazp" ] || baz_error "no $BAZP_INDEX in $origin for plugin '$1'"
 
-    BAZP_NO_LOG=true
-
-    . "$BAZP_INDEX"
-    bazp_check_env
+    bazp_source_env
     old_ver="$BAZP_VER"
 
     if [ -n "$(diff -rq --color=never -x .git -x disabled -x method -x origin "$origin" . 2>&1 || :)" ]; then
@@ -185,10 +181,8 @@ baz_update_plugin_local() {
         bazp_check_env
         new_ver="$BAZP_VER"
 
-        BAZP_NO_LOG=false
-
         if [ "$new_ver" != "$old_ver" ]; then
-            log "updating '$1' from v$old_ver -> v$new_ver"
+            baz_log "updating '$1' from v$old_ver -> v$new_ver"
 
             baz_run_hook 'pre-update'
 
@@ -209,81 +203,81 @@ baz_update_plugin_local() {
 }
 
 baz_update_plugin() {
-    bplug="$(get_base "$1")"
+    bplug="$(baz_get_base "$1")"
     cd -- "$1"
 
     method="$(head -n 1 method)"
 
     fn="baz_update_plugin_$method"
     command -v -- "$fn" >/dev/null ||
-        error "unknown method to update '$bplug' : $method"
+        baz_error "unknown method to update '$bplug' : $method"
 
     "$fn" "$bplug"
 
     cd -- "$BAZP_INITDIR"
 }
 
-describe_env() {
-    log '----------------'
-    log "description : $BAZP_DESCRIPTION"
-    log '----------------'
-    log "name : $BAZP_NAME"
-    log "license : $BAZP_LICENSE"
-    log "version : v$BAZP_VER"
-    log "author : $BAZP_AUTHOR"
-    log "root_plugin_directory : $BAZP_SRC"
-    log "recomended_install_method : $BAZP_METHOD"
-    log "source : $BAZP_SOURCE"
-    [ -f 'method' ] && log "installed_with_method : $(head -n 1 method)"
-    [ -f 'origin' ] && log "plugin_origin : $(head -n 1 origin)"
-    log "disabled : $( ([ -f 'disabled' ] && echo 'Yes') || echo 'No')"
+baz_describe_env() {
+    baz_log '----------------'
+    baz_log "description : $BAZP_DESCRIPTION"
+    baz_log '----------------'
+    baz_log "name : $BAZP_NAME"
+    baz_log "license : $BAZP_LICENSE"
+    baz_log "version : v$BAZP_VER"
+    baz_log "author : $BAZP_AUTHOR"
+    baz_log "root_plugin_directory : $BAZP_SRC"
+    baz_log "recomended_install_method : $BAZP_METHOD"
+    baz_log "source : $BAZP_SOURCE"
+    [ -f 'method' ] && baz_log "installed_with_method : $(head -n 1 method)"
+    [ -f 'origin' ] && baz_log "plugin_origin : $(head -n 1 origin)"
+    baz_log "disabled : $( ([ -f 'disabled' ] && echo 'yes') || echo 'no')"
 
-    BAZP_NO_LOG=true bazp_reset_env
+    bazp_reset_env
     return 0
 }
 
-describe_local() {
-    [ -d "$1" ] || error "plugin directory '$1' does not exist"
+baz_describe_local() {
+    [ -d "$1" ] || baz_error "plugin directory '$1' does not exist"
 
     cd -- "$1"
     . "$BAZP_INDEX"
-    describe_env
+    baz_describe_env
     cd -- "$BAZP_INITDIR"
 }
 
-describe_git() {
-    _repo_dir="${TMPDIR:?}/$(get_base "$1")"
+baz_describe_git() {
+    _repo_dir="${TMPDIR:?}/$(baz_get_base "$1")"
     trap 'rm -rf -- "$_repo_dir"' 0 1 15
 
-    log "cloning $1 ... " printf
+    baz_log "cloning $1 ... " printf
     baz_git_clone "$1" "$_repo_dir"
-    eecho 'done'
-    eecho
+    baz_eecho 'done'
+    baz_eecho
 
     cd -- "$_repo_dir"
     . "$BAZP_INDEX"
-    describe_env
+    baz_describe_env
     cd -- "$BAZP_INITDIR"
 }
 
-describe_exist() {
+baz_describe_exist() {
     _plugdir="${BAZ_PLUGDIR:?}/$1"
 
-    [ -d "${BAZ_PLUGDIR:?}" ] || error 'plugin directory does not exist'
-    [ -d "${_plugdir:?}" ] || error "plugin '$1' not installed"
+    [ -d "${BAZ_PLUGDIR:?}" ] || baz_error 'plugin directory does not exist'
+    [ -d "${_plugdir:?}" ] || baz_error "plugin '$1' not installed"
 
     cd -- "$_plugdir"
 
-    [ -f "${BAZP_INDEX:?}" ] || error "'$BAZP_INDEX' does not exist"
+    [ -f "${BAZP_INDEX:?}" ] || baz_error "'$BAZP_INDEX' does not exist"
     . "$BAZP_INDEX"
 
-    describe_env
+    baz_describe_env
     cd -- "$BAZP_INITDIR"
 }
 
 # generators
 
-baz_config() {
+baz_config_gen() {
     cat <<EOF
 #!/usr/bin/env bash
 # default baz configuration ( generated by baz v$BAZ_VERSION )
@@ -306,11 +300,16 @@ export BLACKLIST_BAZP_NAME=(.*-unstable$ .*-dangerous$)
 # will blacklist all plugins that end with either -unstable or -dangerous
 # at the end of their name, blocking the property \$BAZP_NAME
 
+# BAZP_SINGLETHREAD : only use a single thread for operations that can be multitreaded ( e.g. updating )
+# false : multiple thdeads
+# true : single thread
+export BAZP_SINGLETHREAD=false
+
 # ex: ft=sh
 EOF
 }
 
-baz_preload() {
+baz_preload_gen() {
     cat <<EOF
 #!/usr/bin/env bash
 # default baz preload configuration ( generated by baz v$BAZ_VERSION )
@@ -336,7 +335,7 @@ baz_loader_logging_fn() {
     if [ "$BAZ_LOGGING_ENABLED" ]; then
         tr -d '\n' <<EOF
 if [ "\$BAZ_DEBUG_LOAD" ]; then
- _baz_vecho() { echo "[BAZ_LOAD] \$1">\\&2;}\\&\\&
+ _baz_vecho() { echo "$BAZ_LOGGING_HEADER \$1">\\&2;}\\&\\&
  _baz_vecho "generated by baz version '\$BAZ_LOADER_VERSION'";
 else
  _baz_vecho() { :;};
@@ -354,21 +353,21 @@ baz_loader_baz_log() {
 }
 
 baz_loader_delim() {
-    use sed head awk printf
+    baz_use head awk printf
 
     local shasum
 
     shasum=sha1
-    if ! do_error=no use "$shasum"; then
+    if ! do_error=no baz_use "$shasum"; then
         shasum="${shasum}sum"
-        use "$shasum" || error 'sha1 / sha1sum dependency error : unable to locate a valid sha1 hashing tool'
+        baz_use "$shasum" || baz_error 'sha1 / sha1sum dependency error : unable to locate a valid sha1 hashing tool'
     fi
 
-    printf '%s' "_____UNSAFE_$RANDOM$(head -n 10 /dev/urandom | "$shasum" | awk '{print substr($1, 0, 19)}')$((RANDOM * 2))_DONT.USE.ME_____"
+    printf '_____UNSAFE_%s_DONT.USE.ME_____' "$RANDOM$(head -n 10 /dev/urandom | "$shasum" | awk '{print substr($1, 0, 19)}')$((RANDOM * 2))"
 }
 
-baz_loader() {
-    use sed head awk printf grep read echo
+baz_loader_gen() {
+    baz_use sed head awk printf grep read echo
 
     local idx=0 loader
 
@@ -403,59 +402,56 @@ baz_loader() {
 # installer helpers
 
 bazp_check_env() {
-    log "Checking $BAZP_INDEX... " printf
-
     for env in "${BAZP_ENV[@]}"; do
         if [ ! "${!env}" ]; then
-            eecho 'error'
-            error "bazp : '$env' ( a required propery ) is not set in $BAZP_INDEX"
+            baz_eecho 'error'
+            baz_error "bazp : '$env' ( a required propery ) is not set in $BAZP_INDEX"
         fi
     done
-
-    eecho 'done'
-}
-
-bazp_reset_env() {
-    log 'resetting environment ... ' printf
-
-    for env in "${BAZP_ENV[@]}"; do
-        unset "$env"
-    done
-
-    eecho 'done'
-}
-
-bazp_install_dir() {
-    [ -d "$1" ] || error "'$1' is not a directory"
-    cd -- "$1"
-
-    [ -f "$BAZP_INDEX" ] || error "$BAZP_INDEX does not exist"
-
-    if [ "$BAZP_NO_ASKCHECK" != 'true' ]; then
-        yn "do you want to check out $BAZP_INDEX ?" && less -- "$BAZP_INDEX"
-        yn "do you want to edit $BAZP_INDEX ?" && ${EDITOR:-vi} "$BAZP_INDEX"
-    fi
-
-    bazp_reset_env
-    . "$BAZP_INDEX"
-    BAZP_NAME="$(echo "$BAZP_NAME" | baz_sanitize)"
-    bazp_check_env
 
     for listing in "${BAZP_ENV[@]}"; do
         _blacklist="BLACKLIST_${listing}"
 
         [ "${!_blacklist}" ] || continue
 
-        in_array "${!_blacklist}" "${!listing}" &&
-            error "$listing '${!listing}' is blacklisted by $_blacklist"
+        baz_in_array "${!_blacklist}" "${!listing}" &&
+            baz_error "$listing '${!listing}' is blacklisted by $_blacklist"
     done
+}
+
+bazp_source_env() {
+    bazp_reset_env
+    . "$BAZP_INDEX"
+    bazp_check_env
+}
+
+bazp_reset_env() {
+    for env in "${BAZP_ENV[@]}"; do
+        unset "$env"
+    done
+}
+
+bazp_install_dir() {
+    [ -d "$1" ] || baz_error "'$1' is not a directory"
+    cd -- "$1"
+
+    [ -f "$BAZP_INDEX" ] || baz_error "$BAZP_INDEX does not exist"
+
+    if [ "$BAZP_NO_ASKCHECK" != 'true' ]; then
+        baz_yn "do you want to check out $BAZP_INDEX ?" && less -- "$BAZP_INDEX"
+        baz_yn "do you want to edit $BAZP_INDEX ?" && ${EDITOR:-ed} "$BAZP_INDEX"
+    fi
+
+    bazp_source_env
+    BAZP_NAME="$(echo "$BAZP_NAME" | baz_sanitize)"
+    bazp_check_env
 
     [ -d "${BAZ_PLUGDIR:?}" ] || mkdir -p -- "${BAZ_PLUGDIR:?}"
-    [ -d "${BAZ_PLUGDIR:?}/${BAZP_NAME:?}" ] && error "plugin '$BAZP_NAME' already is installed"
+    [ -d "${BAZ_PLUGDIR:?}/${BAZP_NAME:?}" ] && baz_error "plugin '$BAZP_NAME' already is installed"
 
     baz_run_hook 'pre-install'
 
-    log "installing plugin : ${BAZP_NAME:?} ... " printf
+    baz_log "installing plugin : ${BAZP_NAME:?} ... " printf
 
     cp -r . "${BAZ_PLUGDIR:?}/${BAZP_NAME:?}"
 
@@ -464,7 +460,7 @@ bazp_install_dir() {
         pwd >"${BAZ_PLUGDIR:?}/${BAZP_NAME:?}/origin"
     fi
 
-    eecho 'done'
+    baz_eecho 'done'
 
     baz_run_hook 'post-install'
 
@@ -473,21 +469,21 @@ bazp_install_dir() {
 }
 
 bazp_install_git() {
-    use git local
+    baz_use git
 
-    _plugdir="${TMPDIR:?}/$(get_base "$1")"
+    _plugdir="${TMPDIR:?}/$(baz_get_base "$1")"
 
     if [ -e "$_plugdir" ]; then
-        log "removing $1 ... " printf
-        rm -Ir -- "$_plugdir" || error 'canceled'
-        eecho 'done'
+        baz_log "removing $1 ... " printf
+        rm -Ir -- "$_plugdir" || baz_error 'canceled'
+        baz_eecho 'done'
     fi
 
-    log "cloning repository : $1 ... " printf
-    baz_git_clone "$1" "$_plugdir"
-    eecho 'done'
+    baz_log "cloning repository : $1 ... " printf
+    baz_git_clone "$1" "$_plugdir" || baz_error "failed to clone $1"
+    baz_eecho 'done'
 
-    log "installing $_plugdir"
+    baz_log "installing $_plugdir"
     _bazp_no_clearenv=true _bazp_no_write=true bazp_install_dir "$_plugdir"
 
     echo 'git' >"${BAZ_PLUGDIR:?}/${BAZP_NAME:?}/method"
@@ -497,14 +493,14 @@ bazp_install_git() {
 
 bazp_install_dirs() {
     for dir in "$@"; do
-        log "installing : $dir"
+        baz_log "installing : $dir"
         bazp_install_dir "$dir"
     done
 }
 
 bazp_install_gits() {
     for repo in "$@"; do
-        log "installing : $repo"
+        baz_log "installing : $repo"
         bazp_install_git "$repo"
     done
 }
@@ -514,164 +510,152 @@ bazp_install_gits() {
 baz_help() {
     [ "$BAZP_NO_LOG" = true ] && return
 
-    elog "help for baz v$BAZ_VERSION"
+    baz_elog "help for baz v$BAZ_VERSION"
 
     {
-        log 'subcommands :'
+        baz_log 'subcommands'
 
         {
-            entry 'help' 'print help'
+            baz_entry 'help' 'print help'
 
-            entry 'setup' 'setup baz plugin manager'
-            log "make sure you have $(get_base "$BAZ_LOADER_TEMPLATE") file in CWD" | indent
+            baz_entry 'setup' 'setup baz plugin manager'
+            baz_log "make sure you have at least one of the loaders in CWD" | baz_indent
 
-            entry 'unsetup' 'unsetup ( remove ) the baz plugin manager'
+            baz_entry 'unsetup' 'unsetup ( remove ) the baz plugin manager'
 
-            entry 'install [method] [atoms...]' 'install plugins'
+            baz_entry 'install [method] [atoms...]' 'install plugins'
             {
-                entry 'local' 'local plugin from a directory'
-                log 'atom type : path to plugin, e.g. /tmp/myplug' | indent
+                baz_entry 'local' 'local plugin from a directory'
+                baz_log 'atom type : path to plugin, e.g. /tmp/myplug' | baz_indent
 
-                entry 'git' 'git plugin from git'
-                log 'atom type : <repo url>, e.g. https://ari-web.xyz/gh/baz-example-plugin' | indent
-            } | indent
+                baz_entry 'git' 'git plugin from git'
+                baz_log 'atom type : <repo url>, e.g. https://ari-web.xyz/gh/baz-example-plugin' | baz_indent
+            } | baz_indent
 
-            entry 'uninstall [plugins...]' 'uninstall plugins'
-            entry 'list' 'list all installed plugins'
-            entry 'update <plugins...>' 'update all installed or specified plugins'
+            baz_entry 'uninstall [plugins...]' 'uninstall plugins'
+            baz_entry 'list' 'list all installed plugins'
+            baz_entry 'update <plugins...>' 'update all installed or specified plugins'
 
-            entry 'info [exist|local|git] [atoms...]' 'describe ( get info ) about plugins'
+            baz_entry 'info [exist|local|git] [atoms...]' 'describe ( get info ) about plugins'
             {
-                entry 'exist' 'describe existing ( installed ) plugin'
-                log 'atom type : plugin name, e.g. myplug' | indent
+                baz_entry 'exist' 'describe existing ( installed ) plugin'
+                baz_log 'atom type : plugin name, e.g. myplug' | baz_indent
 
-                entry 'local' 'describe local plugin'
-                log 'atom type : path to plugin, e.g. /tmp/myplug' | indent
+                baz_entry 'local' 'describe local plugin'
+                baz_log 'atom type : path to plugin, e.g. /tmp/myplug' | baz_indent
 
-                entry 'git' 'describe plugin from a git source'
-                log 'atom type : <repo url>, e.g. https://ari-web.xyz/gh/baz-example-plugin' | indent
-            } | indent
+                baz_entry 'git' 'describe plugin from a git source'
+                baz_log 'atom type : <repo url>, e.g. https://ari-web.xyz/gh/baz-example-plugin' | baz_indent
+            } | baz_indent
 
-            entry 'upgrade' 'upgrade baz'
-            log "make sure you're in the baz git repo directory" | indent
+            baz_entry 'upgrade' 'upgrade baz'
+            baz_log "make sure you're in the baz git repo directory" | baz_indent
 
-            entry 'version' 'print version and exit'
+            baz_entry 'version' 'print version and exit'
 
-            entry 'disable [plugins...]' 'disable plugins'
-            entry 'enable [plugins...]' 'enable plugins'
-        } | indent
+            baz_entry 'disable [plugins...]' 'disable plugins'
+            baz_entry 'enable [plugins...]' 'enable plugins'
+        } | baz_indent
 
         echo
 
-        log 'user loader functions :'
+        baz_log 'user loader functions'
 
         {
-            log 'can return anything'
+            baz_log 'can return anything'
 
-            entry 'baz_load_plugin_low <plug dir>' 'load a baz plugin from a specified directory'
+            baz_entry 'baz_load_plugin_low <plug dir>' 'load a baz plugin from a specified directory'
+            baz_log 'note : this is quite a low-level function, be careful' | baz_indent
 
+            baz_entry 'baz_loader' 'load all enabled installed plugins'
             {
-                log 'note : this is quite a low-level function'
-                log 'example : a trailing slash at the end of <plug dir>' | indent
-            } | indent
-
-            entry 'baz_loader' 'load all enabled installed plugins'
-            {
-                log 'note : will leave environment variables of last plugin that was loaded'
-                log 'all environment variables from baz.env' | indent
-            } | indent
-        } | indent
-    } | indent >&2
+                baz_log 'note : will leave environment variables of last plugin that was loaded'
+                baz_log 'all environment variables from baz.env' | baz_indent
+            } | baz_indent
+        } | baz_indent
+    } | baz_indent
 }
 
 baz_setup() {
-    use awk
+    baz_use awk
 
     if [ "$_baz_upgrade" ]; then
-        _baz_new_ver=$(BAZ_NORLWRAP=true ./baz version)
+        baz_log "upgrading baz v$BAZ_VERSION"
 
-        if [ "$_baz_new_ver" = "v$BAZ_VERSION" ]; then
-            log "version v$BAZ_VERSION is up to date with $_baz_new_ver"
-            return
-        fi
-
-        log "upgrading baz v$BAZ_VERSION"
-
-        log "updating repo ... " printf
-        git reset --quiet --hard 2>/dev/null || error 'failed to reset the repo'
-        git pull --quiet 2>/dev/null || error 'failed to pull from repo'
-        eecho 'done'
+        baz_log "updating repo ... " printf
+        baz_git_reset || baz_error 'failed to reset the repo'
+        baz_git pull --recurse-submodules=yes || baz_error 'failed to pull from repo'
+        baz_eecho 'done'
     else
-        log "setting up baz v$BAZ_VERSION"
+        baz_log "setting up baz v$BAZ_VERSION"
     fi
 
     if [ ! -d "$BAZ_DIR" ]; then
-        log "making baz data directory : $(unexpand_path "$BAZ_DIR")... " printf
+        baz_log "making baz data directory : $(baz_unexpand_path "$BAZ_DIR")... " printf
         mkdir -p -- "$BAZ_DIR"
-        eecho 'done'
+        baz_eecho 'done'
     fi
 
     if [ ! -d "$BAZ_CONFDIR" ]; then
-        log "making baz config directory : $(unexpand_path "$BAZ_CONFDIR") ... " printf
+        baz_log "making baz config directory : $(baz_unexpand_path "$BAZ_CONFDIR") ... " printf
         mkdir -p -- "$BAZ_CONFDIR"
-        eecho 'done'
+        baz_eecho 'done'
     fi
 
-    log "generating baz config : $(unexpand_path "$BAZ_CONF") ... " printf
+    baz_log "generating baz config : $(baz_unexpand_path "$BAZ_CONF") ... " printf
     if [ ! -f "$BAZ_CONF" ] || [ "$BAZ_NEWCONF" ]; then
-        baz_config >"$BAZ_CONF"
-        eecho 'done'
+        baz_config_gen >"$BAZ_CONF"
+        baz_eecho 'done'
     else
-        eecho 'found'
+        baz_eecho 'found'
     fi
 
-    log "generating baz preload : $(unexpand_path "$BAZ_PRE") ... " printf
+    baz_log "generating baz preload : $(baz_unexpand_path "$BAZ_PRE") ... " printf
     if [ ! -f "$BAZ_PRE" ] || [ "$BAZ_NEWCONF" ]; then
-        baz_preload >"$BAZ_PRE"
-        eecho 'done'
+        baz_preload_gen >"$BAZ_PRE"
+        baz_eecho 'done'
     else
-        eecho 'found'
+        baz_eecho 'found'
     fi
 
-    if [ ! "$BAZ_NO_CC" ] && do_error=no use "$CC" && [ -f "$BAZ_LOADER_PROG" ]; then
+    if [ ! "$BAZ_NO_CC" ] && do_error=no baz_use "$CC" && [ -f "$BAZ_LOADER_PROG" ]; then
         if [ -f "$BAZ_LOADER_TEMPLATE" ]; then
-            log "generating wrapper to $(unexpand_path "$BAZ_LOADER") ... " printf
-            baz_loader "$BAZ_LOADER_TEMPLATE" >"$BAZ_LOADER"
-            eecho 'done'
+            baz_log "generating wrapper to $(baz_unexpand_path "$BAZ_LOADER") ... " printf
+            baz_loader_gen "$BAZ_LOADER_TEMPLATE" >"$BAZ_LOADER"
+            baz_eecho 'done'
         else
-            log "no wrapper template ( $(unexpand_path "$BAZ_LOADER_TEMPLATE") ) found in CWD"
+            baz_log "no wrapper template ( $(baz_unexpand_path "$BAZ_LOADER_TEMPLATE") ) found in CWD"
         fi
 
-        log "compiling loader $(unexpand_path "$BAZ_LOADER_PROG_BIN") ... " printf
+        baz_log "compiling loader $(baz_unexpand_path "$BAZ_LOADER_PROG_BIN") ... " printf
 
         # shellcheck disable=SC2086
-        if "$CC" $CFLAGS "$BAZ_LOADER_PROG" -D BAZ_CACHE_DIR="\"$BAZ_CACHE_DIR\"" -D DELIM="\"$(baz_loader_delim)\"" $([ "$BAZ_LOGGING_ENABLED" ] && echo "-D LOGGING=\"\\\"$BAZ_LOGGING_HEADER\\\"\"") -o "$BAZ_LOADER_PROG_BIN"; then
-
-            if [ "$STRIP" ] && do_error=no use "$STRIP"; then
+        if "$CC" $CFLAGS "$BAZ_LOADER_PROG" -D DELIM="\"$(baz_loader_delim)\"" $([ "$BAZ_LOGGING_ENABLED" ] && echo "-D LOGGING=\"\\\"$BAZ_LOGGING_HEADER\\\"\"") -o "$BAZ_LOADER_PROG_BIN"; then
+            if [ "$STRIP" ] && do_error=no baz_use "$STRIP"; then
                 # shellcheck disable=SC2086
-                "$STRIP" $STRIPFLAGS "$BAZ_LOADER_PROG_BIN"
+                "$STRIP" $STRIPFLAGS "$BAZ_LOADER_PROG_BIN" || baz_eecho 'stripping failed'
             fi
 
-            eecho 'done'
+            baz_eecho 'done'
         else
-            eecho 'complilation failed'
+            baz_eecho 'complilation failed'
         fi
     elif [ -f "$BAZ_LOADER_TEMPLATE" ]; then
-        log "cannot use the c loader, using bash loader"
+        baz_log "cannot use the c loader, using bash loader"
 
-        log "generating bash loader to $(unexpand_path "$BAZ_LOADER") ... " printf
-        baz_loader "$BAZ_BASH_LOADER_TEMPLATE" >"$BAZ_LOADER"
-        eecho 'done'
+        baz_log "generating bash loader to $(baz_unexpand_path "$BAZ_LOADER") ... " printf
+        baz_loader_gen "$BAZ_BASH_LOADER_TEMPLATE" >"$BAZ_LOADER"
+        baz_eecho 'done'
     else
-        log "unable to use any loaders"
+        baz_log "unable to use any loaders"
     fi
 
-    eecho
+    baz_eecho
     if [ "$_baz_upgrade" ]; then
-        log "upgraded baz from v$BAZ_VERSION -> $_baz_new_ver"
+        baz_log "done ! baz has been upgraded"
     else
-        log "done ! now just add this ( if it already isnt there ) to your ~/.bashrc :"
-        eecho
+        baz_log "done ! now just add this ( if it already isnt there ) to your ~/.bashrc :"
+        baz_eecho
 
         cat <<EOF
     export BAZ_LOADER_ENABLED=true
@@ -684,30 +668,30 @@ EOF
 }
 
 baz_unsetup() {
-    log "removing baz v$BAZ_VERSION"
+    baz_log "removing baz v$BAZ_VERSION"
 
-    log "removing baz data directory : $(unexpand_path "$BAZ_DIR") ... " printf
+    baz_log "removing baz data directory : $(baz_unexpand_path "$BAZ_DIR") ... " printf
     rm -rf -- "$BAZ_DIR"
-    eecho 'done'
+    baz_eecho 'done'
 
-    log "now just remove $0"
+    baz_log "now just remove $0 and remove the loader lines from bashrc"
 }
 
 baz_install() {
-    [ "$1" ] || error 'no method specified'
-    [ "$2" ] || error 'no atom specified'
+    [ "$1" ] || baz_error 'no method specified'
+    [ "$2" ] || baz_error 'no atom specified'
 
-    log 'will install :'
+    baz_log 'will install :'
     {
         for dir in "${@:2}"; do
-            log "$dir"
+            baz_log "$dir"
         done
-    } | indent
-    eecho
+    } | baz_indent
+    baz_eecho
 
     if [ "$BAZP_NO_ASKINST" != 'true' ]; then
-        yn "are you sure ?" ||
-            error 'aborting, canceled by the user'
+        baz_yn "are you sure ?" ||
+            baz_error 'aborting, canceled by the user'
     fi
 
     export BAZP_INSTALL_METHOD="$1"
@@ -715,175 +699,184 @@ baz_install() {
     case "$1" in
     local) bazp_install_dirs "${@:2}" ;;
     git) bazp_install_gits "${@:2}" ;;
-    *) error "method '$1' does not exist" ;;
+    *) baz_error "method '$1' does not exist" ;;
     esac
 }
 
 baz_uninstall() {
-    [ "$1" ] || error 'no plugins specified'
+    [ "$1" ] || baz_error 'no plugins specified'
 
-    log 'will uninstall :'
+    baz_log 'will uninstall :'
     _ex="${TMPDIR:?}/.baz_uninstall.ss"
 
     {
         set -e
 
         for plugin in "$@"; do
-            check_plugin_state "$_ex"
+            baz_check_plugin_state "$_ex"
 
             if [ ! -d "${BAZ_PLUGDIR:?}/${plugin:?}" ]; then
                 : >"$_ex"
-                error "plugin '$plugin' not installed"
+                baz_error "plugin '$plugin' is not installed"
             fi
 
-            log "$plugin"
+            baz_log "$plugin"
         done
-    } | indent
-    eecho
+    } | baz_indent
+    baz_eecho
 
     [ -e "$_ex" ] && rm -f -- "$_ex" && exit 1
 
     if [ "$BAZP_NO_ASKINST" != 'true' ]; then
-        yn 'are you sure ?' || error 'aborting : canceled by the user'
+        baz_yn 'are you sure ?' || baz_error 'aborting : canceled by the user'
     fi
 
     for plugin in "$@"; do
-        check_plugin_state
+        baz_check_plugin_state
 
-        log "uninstalling : $plugin ..."
+        {
+            baz_log "uninstalling : $plugin ..."
 
-        cd "${BAZ_PLUGDIR:?}/$plugin"
-        . "$BAZP_INDEX"
-        baz_run_hook 'pre-uninstall'
-        bazp_reset_env
+            cd "${BAZ_PLUGDIR:?}/$plugin"
+            . "$BAZP_INDEX"
+            baz_run_hook 'pre-uninstall'
+            bazp_reset_env
 
-        cd "$BAZP_INITDIR"
-        rm -rf -- "${BAZ_PLUGDIR:?}/$plugin"
+            cd "$BAZP_INITDIR"
+            rm -rf -- "${BAZ_PLUGDIR:?}/$plugin"
+        } &
+
+        [ "$BAZP_SINGLETHREAD" = true ] && wait
     done
+
+    [ "$BAZP_SINGLETHREAD" != true ] && wait
 }
 
 baz_list() {
-    [ -d "${BAZ_PLUGDIR:?}" ] || error 'no plugin directory'
-    [ -z "$(ls -A -- "${BAZ_PLUGDIR:?}")" ] && error 'no plugins installed'
+    [ -d "${BAZ_PLUGDIR:?}" ] || baz_error 'no plugin directory'
+    [ -z "$(ls -A -- "${BAZ_PLUGDIR:?}")" ] && baz_error 'no plugins installed'
 
-    log 'installed plugins :'
+    baz_log 'installed plugins :'
 
     {
         while read -r dir; do
-            _plugent="$(get_base "$dir")"
+            _plugent="$(baz_get_base "$dir")"
             [ -f "$dir/disabled" ] && _plugent+=' [DISABLED]'
 
-            log "$_plugent"
+            baz_log "$_plugent"
         done <<<"$(find "${BAZ_PLUGDIR:?}" -maxdepth 1 -not -path "${BAZ_PLUGDIR:?}" -type d)"
-    } | indent >&2
+    } | baz_indent >&2
 }
 
 baz_update() {
-    log 'updating plugins in paralel ... ' printf
+    baz_log "updating plugins $([ "$BAZP_SINGLETHREAD" != true ] && echo 'in paralel ')... " printf
 
     if [ "$1" ]; then
-        eecho 'specified'
+        baz_eecho 'specified'
 
         for plugin in "$@"; do
-            plugin="$(get_base "${plugin:?}")" check_plugin_state
+            plugin="$(baz_get_base "${plugin:?}")" baz_check_plugin_state
             baz_update_plugin "${BAZ_PLUGDIR:?}/${plugin:?}" &
         done
     else
-        [ -d "${BAZ_PLUGDIR:?}" ] || error 'no plugin directory'
-        eecho 'all'
+        [ -d "${BAZ_PLUGDIR:?}" ] || baz_error 'no plugin directory'
+        baz_eecho 'all'
 
         for plugin in "${BAZ_PLUGDIR:?}"/*; do
             baz_update_plugin "${plugin:?}" &
+            [ "$BAZP_SINGLETHREAD" = true ] && wait
         done
     fi
 
-    log 'waiting for updates to finish'
-    wait
-    log 'updated !'
+    if [ "$BAZP_SINGLETHREAD" != true ]; then
+        baz_log 'waiting for updates to finish'
+        wait
+    fi
+
+    baz_log 'updated !'
 }
 
 baz_info() {
-    [ "$1" ] || error 'no plugin type specified'
-    [ "$2" ] || error 'no atom specified'
+    [ "$1" ] || baz_error 'no plugin type specified'
+    [ "$2" ] || baz_error 'no atom specified'
 
-    fn="describe_$1"
+    fn="baz_describe_$1"
     command -v -- "$fn" >/dev/null ||
-        error "Plugin type '$1' is not known"
+        baz_error "plugin type '$1' is not known"
 
     for plugin in "${@:2}"; do
-        [ "$1" = 'git' ] || check_plugin_state
+        [ "$1" = 'exist' ] && baz_check_plugin_state
 
-        $fn "$plugin"
-        eecho
+        "$fn" "$plugin"
+        baz_eecho
     done
 }
 
 baz_upgrade() {
-    log 'upgrading baz'
-    yn 'do you want to overwrite your config ?' && export BAZ_NEWCONF=true
+    baz_log 'upgrading baz'
+    baz_yn 'do you want to overwrite your config ?' && export BAZ_NEWCONF=true
 
     _baz_upgrade=true baz_setup
 }
 
 baz_disable() {
-    [ "$1" ] || error 'no plugins specified'
+    [ "$1" ] || baz_error 'no plugins specified'
 
     for plugin in "$@"; do
-        check_plugin_state
+        baz_check_plugin_state
 
-        log "disabling plugin $plugin"
+        baz_log "disabling plugin $plugin"
         : >"${BAZ_PLUGDIR:?}/${plugin:?}/disabled"
     done
 }
 
 baz_enable() {
-    [ "$1" ] || error 'no plugins specified'
+    [ "$1" ] || baz_error 'no plugins specified'
 
     for plugin in "$@"; do
-        check_plugin_state
+        baz_check_plugin_state
 
-        log "enabling plugin $plugin"
+        baz_log "enabling plugin $plugin"
         rm -f -- "${BAZ_PLUGDIR:?}/${plugin:?}/disabled"
     done
 }
 
 main() {
-    use printf return
+    baz_use printf
 
     [ "$_BAZ_NO_PRE" != true ] && [ -f "$BAZ_PRE" ] && . "$BAZ_PRE"
 
     if [ "$BAZ_NORLWRAP" != true ] && command -v rlwrap >/dev/null; then
-        use trap rlwrap return
+        baz_use trap rlwrap return
 
         _rlhist="$TMPDIR/.baz.$RANDOM"
 
         : >"$_rlhist"
         trap 'rm -f -- "$_rlhist"' 0 1 15
 
-        _BAZ_NO_PRE=true BAZ_NORLWRAP=true rlwrap -g '.*' -H "$_rlhist" -- "$0" "$@"
-        exit $?
+        _BAZ_NO_PRE=true BAZ_NORLWRAP=true exec rlwrap -g '.*' -H "$_rlhist" -- "$0" "$@"
     fi
 
     set -e
 
-    use trap command find rm cp mkdir \
+    baz_use trap command find rm cp mkdir \
         read printf unset return \
         while echo git wait head
 
     if [ -f "$BAZ_CONF" ]; then
         . "$BAZ_CONF"
     else
-        elog 'warning : no config found'
+        baz_elog 'warning : no config found'
     fi
 
     if [ "$BAZ_LOADER_VERSION" ] && [ "$BAZ_LOADER_VERSION" != "$BAZ_VERSION" ]; then
-        elog "baz loader version ( $BAZ_LOADER_VERSION ) does not match current version ( $BAZ_VERSION )"
+        baz_elog "baz loader version ( $BAZ_LOADER_VERSION ) does not match current version ( $BAZ_VERSION )"
     fi
 
-    BAZP_NO_LOG=true bazp_reset_env
+    bazp_reset_env
 
     case "${1//[[:space:]]/}" in
-    help) baz_help 2>&1 ;;
+    help) baz_help ;;
     setup) baz_setup ;;
     unsetup) baz_unsetup ;;
     install) baz_install "$2" "${@:3}" ;;
@@ -896,12 +889,12 @@ main() {
     disable) baz_disable "${@:2}" ;;
     enable) baz_enable "${@:2}" ;;
     '')
-        baz_help
+        baz_help >&2
         exit 1
         ;;
     *)
-        elog "error : subcommand '$1' is not valid"
-        baz_help 2>&1 | indent >&2
+        baz_elog "error : subcommand '$1' is not valid"
+        baz_help | baz_indent >&2
         exit 1
         ;;
     esac
