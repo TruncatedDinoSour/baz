@@ -5,6 +5,7 @@
 #define PATH_NO_LIBS
 
 #define FILE_IMPL
+#define MEM_IMPL
 #define PATH_IMPL
 #define STR_IMPL
 #define SHELL_IMPL
@@ -22,12 +23,16 @@
 #include <limits.h>
 #include <string.h>
 #include <sys/stat.h>
+#if defined(MEM_CUSTOM) && !defined(MEM_BRK)
+#include <sys/mman.h>
+#endif
 
+#include "mem.h"
 #include "file.h"
-#include "path.h"
 #include "macros.h"
-#include "str.h"
+#include "path.h"
 #include "shell.h"
+#include "str.h"
 
 #ifdef LOGGING
 static unsigned char debug_load;
@@ -39,7 +44,7 @@ static unsigned char debug_load;
 
 typedef void (*stage_t)(char *);
 
-void load_envs(char *path) {
+static void load_envs(char *path) {
     size_t envs_base;
 
     struct dirent *ep;
@@ -62,10 +67,10 @@ void load_envs(char *path) {
         if ((f = read_file(path)).content == NULL)
             continue;
 
+        log(path);
+
         if (f.content[f.content_size - 1] == '\n')
             f.content[f.content_size - 1] = '\0';
-
-        log(path);
 
         printf("read -rd '' %s<<" DELIM "\n"
                "%s\n" DELIM "\nexport %s=\"${%s%%\n}\"\n",
@@ -79,7 +84,7 @@ void load_envs(char *path) {
     closedir(dp);
 }
 
-void load_cmds(char *path) {
+static void load_cmds(char *path) {
     size_t cmds_base;
 
     struct dirent *ep;
@@ -102,7 +107,7 @@ void load_cmds(char *path) {
     }
 }
 
-void load_functions(char *path) {
+static void load_functions(char *path) {
     size_t funs_base;
 
     struct dirent *ep;
@@ -133,7 +138,7 @@ void load_functions(char *path) {
     closedir(dp);
 }
 
-void load_aliases(char *path) {
+static void load_aliases(char *path) {
     size_t alias_base;
 
     struct dirent *ep;
@@ -150,8 +155,6 @@ void load_aliases(char *path) {
     if ((dp = opendir(path)) == NULL)
         return;
 
-    puts(".0(){");
-
     while ((ep = readdir_visible(dp))) {
         strcat(path, ep->d_name);
 
@@ -167,12 +170,10 @@ void load_aliases(char *path) {
         str_free(&alias_content);
     }
 
-    puts("};.0");
-
     closedir(dp);
 }
 
-void load_runners(char *path) {
+static void load_runners(char *path) {
     size_t runs_base;
 
     struct dirent *ep;
@@ -203,12 +204,14 @@ void load_runners(char *path) {
     closedir(dp);
 }
 
-void load_completions(char *path) {
+static void load_completions(char *path) {
     size_t comps_base;
 
     struct dirent *ep;
     DIR *dp;
     char *basename;
+
+    char *line;
 
     log("loading completions");
 
@@ -218,25 +221,26 @@ void load_completions(char *path) {
     if ((dp = opendir(path)) == NULL)
         return;
 
-    puts(".0(){\nlocal c");
-
     while ((ep = readdir_visible(dp))) {
         strcat(path, ep->d_name);
 
         log(path);
-        printf("read -r c<%s\ncomplete -F \"$c\" bashdefault -o default %s\n",
-               path, (basename = get_base(path)));
-        free(basename);
+
+        if ((line = read_line(path)) != NULL) {
+            printf("complete -F %s bashdefault -o default %s\n", line,
+                   (basename = get_base(path)));
+
+            mem_free(basename);
+            mem_free(line);
+        }
 
         path[comps_base] = '\0';
     }
 
-    puts("};.0");
-
     closedir(dp);
 }
 
-void load_keybinds(char *path) {
+static void load_keybinds(char *path) {
     size_t keys_base;
 
     struct dirent *ep;
@@ -277,7 +281,7 @@ void load_keybinds(char *path) {
         log(path);
 
         printf("bind -m %s -f %s\n", (basename = get_base(path)), path);
-        free(basename);
+        mem_free(basename);
 
         path[keys_base] = '\0';
     }
@@ -285,14 +289,14 @@ void load_keybinds(char *path) {
     closedir(dp);
 }
 
+static const stage_t stages[] = {
+    load_envs,    load_cmds,        load_functions, load_aliases,
+    load_runners, load_completions, load_keybinds,
+};
+
+static const size_t stages_sz = sizeof(stages) / sizeof(stages[0]);
+
 int main(int argc, char **argv) {
-    static const volatile stage_t stages[] = {
-        load_envs,    load_cmds,        load_functions, load_aliases,
-        load_runners, load_completions, load_keybinds,
-    };
-
-    static const volatile size_t stages_sz = sizeof(stages) / sizeof(stages[0]);
-
     size_t path_base;
     char *path;
     unsigned char stage;
@@ -302,7 +306,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    path = malloc(PATH_MAX);
+    path = mem_alloc(PATH_MAX);
 
 #ifdef LOGGING
     if ((debug_load = getenv(DEBUG_LOAD) != NULL))
@@ -325,7 +329,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    free(path);
+    mem_free(path);
 
     return 0;
 }

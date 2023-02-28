@@ -1,6 +1,6 @@
 #ifndef _FILE_H
 #define _FILE_H
-#ifndef FILE_NO_STDDEF
+#ifndef FILE_STDDEF
 #include <stddef.h>
 #endif
 
@@ -9,11 +9,14 @@ typedef struct {
     char *content;
 } File;
 
-File read_file(const char *);
-void close_file(File *);
+static void close_file(File *);
+static File read_file(const char *);
+static char *read_line(const char *);
 
 #ifdef FILE_IMPL
-File read_file(const char *path) {
+static void close_file(File *f) { mem_free(f->content); }
+
+static File read_file(const char *path) {
     File f = {0};
     size_t content_size;
 
@@ -31,10 +34,10 @@ File read_file(const char *path) {
 
     lseek(fd, 0, SEEK_SET);
 
-    f.content = malloc(content_size + 2);
+    f.content = mem_alloc(content_size + 2);
 
     if (read(fd, f.content, content_size) == -1) {
-        free(f.content);
+        close_file(&f);
         f.content = NULL;
         return f;
     }
@@ -48,6 +51,28 @@ File read_file(const char *path) {
     return f;
 }
 
-void close_file(File *f) { free(f->content); }
+static char *read_line(const char *path) {
+    int fd;
+    ssize_t sz = 0, rb;
+    char *buf  = NULL;
+
+    if ((fd = open(path, O_RDONLY)) == -1)
+        return NULL;
+
+    do {
+        buf = mem_realloc(buf, (sz += LINE_GROWTH));
+
+        if ((rb = read(fd, buf, sz)) == -1) {
+            mem_free(buf);
+            close(fd);
+            return NULL;
+        }
+    } while (rb == sz);
+
+    if (buf[rb - 1] == '\n')
+        buf[rb - 1] = '\0';
+
+    return buf;
+}
 #endif /* FILE_IMPL */
 #endif /* _FILE_H */

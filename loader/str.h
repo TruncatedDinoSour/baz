@@ -3,26 +3,25 @@
 #ifndef STR_NO_STDDEF
 #include <stddef.h>
 #endif
-#include "config.h"
 
 typedef struct {
     size_t len, idx;
     char *string;
 } Str;
 
-void str_append(Str *, char);
-void str_free(Str *);
+static void str_append(Str *, const char);
+static void str_free(Str *);
 
 #ifdef STR_IMPL
-void str_append(Str *str, char chr) {
+static void str_append(Str *str, const char chr) {
     if (str->idx >= str->len) {
         str->len += STR_GROWTH;
-        str->string = realloc(str->string, str->len);
+        str->string = mem_realloc(str->string, str->len);
     }
 
     str->string[str->idx++] = chr;
 }
 
-void str_free(Str *str) { free(str->string); }
+static void str_free(Str *str) { mem_free(str->string); }
 #endif /* STR_IMPL */
 #endif /* _STR_H */

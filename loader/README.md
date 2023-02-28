@@ -8,6 +8,8 @@ this loader has 2 parts
 `loader.sht` is needed to interract with the loader itself
 and implement the baz loader standard
 
+use `config.h` to configure it
+
 ## example compilation
 
 ```sh

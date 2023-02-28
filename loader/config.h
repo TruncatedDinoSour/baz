@@ -16,4 +16,7 @@
 #define LOGGING_FN         ".1"
 #define LOGGING_FN_DEF     LOGGING_FN "(){ echo \"" LOGGING " $1\">&2;}"
 #define STR_GROWTH         32
+#define LINE_GROWTH        64
+/* #define MEM_CUSTOM      use custom malloc(), free() and realloc() functions */
+/* #define MEM_BRK         use brk() instead of mmap() in memory functions */
 #endif /* _CONFIG_H */
