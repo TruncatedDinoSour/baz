@@ -20,10 +20,6 @@ use() {
 main() {
     echo 'beginning setting up baz'
 
-    # shellcheck disable=SC2015
-    command -v baz && err 'you already have baz installed' || true
-    [ -d '.git' ] && err 'you must not be in a git repository to set baz up'
-
     use git "${__BASH_RUNAS}" install sh bash
 
     echo 'pre-cleanup'
