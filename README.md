@@ -51,8 +51,8 @@ but you probably have all of them, maybe not `git`, but a lot of people do
         -   wherever you can get BASH on
     -   android
     -   most likely ( needs testing, please contribute if you have the resources to do so :) )
-        - macOS
-        - iOS
+        -   macOS
+        -   iOS
 -   GPLv3 licensing
 
 # automatic setup
@@ -134,6 +134,18 @@ export STRIP='llvm-strip'
 
 ```sh
 export STRIPFLAGS='--remove-section=.note --strip-all'
+```
+
+-   set the `load` binary path
+
+```bash
+export BAZ_LOADER_PROG_BIN='/some/load'
+```
+
+-   set the `load` binary path destination
+
+```bash
+export DESTDIR='/some/dir/'
 ```
 
 -   install the script anywhere, or even run it standalone

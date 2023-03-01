@@ -11,11 +11,6 @@
 #define STR_IMPL
 #define SHELL_IMPL
 
-#ifndef DELIM
-#error define DELIM to the user delim
-#define DELIM DEFAULT_DELIM
-#endif
-
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>

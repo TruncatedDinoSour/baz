@@ -1,8 +1,6 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 static const volatile char newline = '\n';
-#define DEFAULT_DELIM \
-    "_____DEFAULT.UNSAFE_239983baecedfa142b90e35024048_DONT.USE.ME_____"
 #define DIR_SEP            "/"
 #define ENVS_DIR           "environments"
 #define CMDS_DIR           "commands"
