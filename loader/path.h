@@ -19,7 +19,7 @@ chop_str(const char *str, const unsigned long begin, const unsigned long end) {
     if (begin >= end)
         return NULL;
 
-    buf = mem_alloc((sizeof str[0]) * (end - begin) + 1);
+    buf = mem_alloc((end - begin + 1) * sizeof(char));
 
     for (idx = begin; idx <= end; ++idx)
         buf[idx - begin] = str[idx];
@@ -33,25 +33,23 @@ static char *get_base(const char *path) {
     const size_t len         = strlen(path);
     unsigned long last_slash = 0, idx;
 
-    for (idx = 0; idx < len; ++idx) {
+    for (idx = 0; idx < len; ++idx)
         if (path[idx] == '/')
             last_slash = idx;
-    }
 
     return chop_str(path, last_slash + 1, len);
 }
 
 static unsigned char path_exists(const char *path) {
-    struct stat buffer;
-    return stat(path, &buffer) == 0;
+    return access(path, F_OK) == 0;
 }
 
 static struct dirent *readdir_visible(DIR *dp) {
     struct dirent *ep;
 
-    while ((ep = readdir(dp)))
-        if (ep->d_name[0] != '.')
-            break;
+    do {
+        ep = readdir(dp);
+    } while (ep && ep->d_name[0] == '.');
 
     return ep;
 }

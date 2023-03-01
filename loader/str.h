@@ -4,11 +4,6 @@
 #include <stddef.h>
 #endif
 
-struct struct_Str {
-    size_t len, idx;
-    char *string;
-};
-
 typedef struct {
     size_t len, idx;
     char *string;
@@ -19,7 +14,7 @@ static void str_free(Str *);
 
 #ifdef STR_IMPL
 static void str_append(Str *str, const char chr) {
-    if (str->idx >= str->len)
+    if (str->idx == str->len)
         str->string = mem_realloc(str->string, (str->len += STR_GROWTH));
 
     str->string[str->idx++] = chr;

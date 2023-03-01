@@ -33,7 +33,7 @@ static void alloc_file(const char *path, File *f) {
 
     lseek(fd, 0, SEEK_SET);
 
-    if (content_size >= f->content_size)
+    if (content_size > f->content_size)
         f->content = mem_realloc(f->content, content_size + 2);
 
     f->content_size = content_size;
