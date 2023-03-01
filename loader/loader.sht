@@ -10,16 +10,13 @@ baz_load_plugin_low() {
 baz_loader() {
     [ -d '#{BAZ_PLUG_DIR}' ] || return 1
 
-    local p ps=()
+    local p d=()
 
     for p in '#{BAZ_PLUG_DIR}'/*; do
-        if [ ! -e "$p/disabled" ] && [ -f "$p/baz.env" ]; then
-            . "$p/baz.env"
-            ps+=("$p/$BAZP_SRC")
-        fi
+        [ -f "$p/baz.env" ] && [ ! -e "$p/disabled" ] && . "$p/baz.env" && d+=("$p/$BAZP_SRC")
     done
 
-    eval "$(:BAZ_LOADER_CMD "${ps[@]}")"
+    [ "$BAZP_SRC" ] && eval "$(:BAZ_LOADER_CMD "${d[@]}")"
 
     #{BAZ_NOP}
 }

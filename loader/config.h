@@ -1,5 +1,6 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
+static const volatile char newline = '\n';
 #define DEFAULT_DELIM \
     "_____DEFAULT.UNSAFE_239983baecedfa142b90e35024048_DONT.USE.ME_____"
 #define DIR_SEP            "/"
@@ -17,6 +18,5 @@
 #define LOGGING_FN_DEF     LOGGING_FN "(){ echo \"" LOGGING " $1\">&2;}"
 #define STR_GROWTH         32
 #define LINE_GROWTH        64
-/* #define MEM_CUSTOM      use custom malloc(), free() and realloc() functions */
-/* #define MEM_BRK         use brk() instead of mmap() in memory functions */
+/* #define MEM_CUSTOM      use custom malloc(), free() and realloc() */
 #endif /* _CONFIG_H */

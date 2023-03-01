@@ -9,4 +9,9 @@
 #else
 #define log(msg)
 #endif /* LOGGING */
+#define nputs(s) fputs(s, stdout)
+#define mks(sname, var)  \
+    sname var     = {0}; \
+    sname *p##var = &var
+#define pnl() putchar(newline)
 #endif /* _MACROS_H */

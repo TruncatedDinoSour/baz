@@ -4,29 +4,30 @@
 #include "str.h"
 #endif
 
-static Str escape_quotes(char *, const size_t);
+static void escape_quotes(Str *, const char *, size_t);
 
 #ifdef SHELL_IMPL
-static Str escape_quotes(char *shell, const size_t size) {
-    Str str = {STR_GROWTH, 0, NULL};
-    str.len += size;
-    str.string = mem_alloc(str.len);
+static void escape_quotes(Str *str, const char *shell, size_t init_size) {
+    if (init_size > str->len) {
+        str->string = mem_realloc(str->string, (init_size += STR_GROWTH));
+        str->len    = init_size;
+    }
 
-    if (!size) {
-        str.string[0] = '\0';
-        return str;
+    str->idx = 0;
+
+    if (!init_size) {
+        *str->string = '\0';
+        return;
     }
 
     while (*shell != '\0') {
         if (*shell == '"')
-            str_append(&str, '\\');
+            str_append(str, '\\');
 
-        str_append(&str, *shell++);
+        str_append(str, *shell++);
     }
 
-    str.string[str.idx - (str.string[str.idx - 1] == '\n')] = '\0';
-
-    return str;
+    str->string[str->idx - (str->string[str->idx - 1] == '\n')] = '\0';
 }
 #endif /* SHELL_IMPL */
 #endif /* _SHELL_H */

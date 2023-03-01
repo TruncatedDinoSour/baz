@@ -9,46 +9,44 @@ typedef struct {
     char *content;
 } File;
 
-static void close_file(File *);
-static File read_file(const char *);
+static void free_file(File *);
+static void alloc_file(const char *, File *);
 static char *read_line(const char *);
 
 #ifdef FILE_IMPL
-static void close_file(File *f) { mem_free(f->content); }
+static void free_file(File *f) { mem_free(f->content); }
 
-static File read_file(const char *path) {
-    File f = {0};
+static void alloc_file(const char *path, File *f) {
+    int fd;
     size_t content_size;
 
-    int fd = open(path, O_RDONLY);
+    if ((fd = open(path, O_RDONLY)) == -1) {
+        f->content_size = 0;
+        return;
+    }
 
-    if (fd == -1)
-        return f;
-
-    content_size = lseek(fd, 0, SEEK_END);
-
-    if (content_size == 0) {
+    if ((content_size = lseek(fd, 0, SEEK_END)) == 0) {
         close(fd);
-        return f;
+        f->content_size = 0;
+        return;
     }
 
     lseek(fd, 0, SEEK_SET);
 
-    f.content = mem_alloc(content_size + 2);
+    if (content_size >= f->content_size)
+        f->content = mem_realloc(f->content, content_size + 2);
 
-    if (read(fd, f.content, content_size) == -1) {
-        close_file(&f);
-        f.content = NULL;
-        return f;
+    f->content_size = content_size;
+
+    if (read(fd, f->content, content_size) == -1) {
+        f->content_size = 0;
+        close(fd);
+        return;
     }
 
-    f.content[content_size] = '\0';
-
-    f.content_size = content_size;
+    f->content[content_size] = '\0';
 
     close(fd);
-
-    return f;
 }
 
 static char *read_line(const char *path) {

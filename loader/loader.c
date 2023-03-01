@@ -1,11 +1,12 @@
 #include "config.h"
 
+#define MEM_NO_STDDEF
 #define FILE_NO_STDDEF
 #define STR_NO_STDDEF
 #define PATH_NO_LIBS
 
-#define FILE_IMPL
 #define MEM_IMPL
+#define FILE_IMPL
 #define PATH_IMPL
 #define STR_IMPL
 #define SHELL_IMPL
@@ -23,7 +24,8 @@
 #include <limits.h>
 #include <string.h>
 #include <sys/stat.h>
-#if defined(MEM_CUSTOM) && !defined(MEM_BRK)
+
+#ifdef MEM_CUSTOM
 #include <sys/mman.h>
 #endif
 
@@ -49,7 +51,9 @@ static void load_envs(char *path) {
 
     struct dirent *ep;
     DIR *dp;
-    File f;
+
+    mks(File, f);
+    mks(Str, s);
 
     log("loading environment variables");
 
@@ -59,12 +63,14 @@ static void load_envs(char *path) {
     if ((dp = opendir(path)) == NULL)
         return;
 
-    puts(".0(){\nlocal IFS=");
+    nputs("export");
 
     while ((ep = readdir_visible(dp))) {
         strcat(path, ep->d_name);
 
-        if ((f = read_file(path)).content == NULL)
+        alloc_file(path, pf);
+
+        if (f.content_size == 0)
             continue;
 
         log(path);
@@ -72,15 +78,15 @@ static void load_envs(char *path) {
         if (f.content[f.content_size - 1] == '\n')
             f.content[f.content_size - 1] = '\0';
 
-        printf("read -rd '' %s<<" DELIM "\n"
-               "%s\n" DELIM "\nexport %s=\"${%s%%\n}\"\n",
-               ep->d_name, f.content, ep->d_name, ep->d_name);
+        escape_quotes(ps, f.content, f.content_size);
 
-        close_file(&f);
+        printf(" %s=\"%s\"", ep->d_name, s.string);
         path[envs_base] = '\0';
     }
-    puts("};.0");
 
+    pnl();
+    free_file(pf);
+    str_free(ps);
     closedir(dp);
 }
 
@@ -112,7 +118,8 @@ static void load_functions(char *path) {
 
     struct dirent *ep;
     DIR *dp;
-    File f;
+
+    mks(File, f);
 
     log("loading functions");
 
@@ -125,16 +132,18 @@ static void load_functions(char *path) {
     while ((ep = readdir_visible(dp))) {
         strcat(path, ep->d_name);
 
-        if ((f = read_file(path)).content == NULL)
+        alloc_file(path, pf);
+
+        if (f.content_size == 0)
             continue;
 
         log(path);
-        printf("function %s(){\n%s\n}\n", ep->d_name, f.content);
+        printf("%s(){\n%s\n}\n", ep->d_name, f.content);
 
-        close_file(&f);
         path[funs_base] = '\0';
     }
 
+    free_file(pf);
     closedir(dp);
 }
 
@@ -143,8 +152,9 @@ static void load_aliases(char *path) {
 
     struct dirent *ep;
     DIR *dp;
-    File f;
-    Str alias_content;
+
+    mks(Str, s);
+    mks(File, f);
 
     log("loading aliases");
 
@@ -155,21 +165,23 @@ static void load_aliases(char *path) {
     if ((dp = opendir(path)) == NULL)
         return;
 
+    nputs("alias");
+
     while ((ep = readdir_visible(dp))) {
         strcat(path, ep->d_name);
 
         log(path);
 
-        f             = read_file(path);
-        alias_content = escape_quotes(f.content, f.content_size);
+        alloc_file(path, pf);
+        escape_quotes(ps, f.content, f.content_size);
 
-        printf("alias %s=\"%s\"\n", ep->d_name, alias_content.string);
+        printf(" %s=\"%s\"", ep->d_name, s.string);
         path[alias_base] = '\0';
-
-        close_file(&f);
-        str_free(&alias_content);
     }
 
+    pnl();
+    free_file(pf);
+    str_free(ps);
     closedir(dp);
 }
 
@@ -178,7 +190,8 @@ static void load_runners(char *path) {
 
     struct dirent *ep;
     DIR *dp;
-    File f;
+
+    mks(File, f);
 
     log("running runners");
 
@@ -191,16 +204,18 @@ static void load_runners(char *path) {
     while ((ep = readdir_visible(dp))) {
         strcat(path, ep->d_name);
 
-        if ((f = read_file(path)).content == NULL)
+        alloc_file(path, pf);
+
+        if (f.content_size == 0)
             continue;
 
         log(path);
         puts(f.content);
 
-        close_file(&f);
         path[runs_base] = '\0';
     }
 
+    free_file(pf);
     closedir(dp);
 }
 
@@ -301,10 +316,8 @@ int main(int argc, char **argv) {
     char *path;
     unsigned char stage;
 
-    if (argc < 2) {
-        fputs("no plugin dirs provided\n", stderr);
+    if (argc < 2)
         return 1;
-    }
 
     path = mem_alloc(PATH_MAX);
 

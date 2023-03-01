@@ -20,12 +20,8 @@ static void *mem_alloc(size_t size) {
     size_t *p;
     size += sizeof(size_t);
 
-#ifdef MEM_BRK
-    p = sbrk(size);
-#else
     p = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS,
              -1, 0);
-#endif /* MEM_BRK */
 
     *p = size;
     return p + sizeof(size_t);
@@ -33,11 +29,7 @@ static void *mem_alloc(size_t size) {
 
 static void mem_free(void *ptr) {
     size_t *p = (size_t *)ptr - sizeof(size_t);
-#ifdef MEM_BRK
-    sbrk(-*p);
-#else
     munmap(p, *p);
-#endif /* MEM_BRK */
 }
 
 static void *mem_realloc(void *ptr, size_t size) {
@@ -58,9 +50,6 @@ static void *mem_realloc(void *ptr, size_t size) {
     } else {
         new_ptr = ptr;
         *p      = size;
-#ifdef MEM_BRK
-        sbrk(old_size - size);
-#endif /* MEM_BRK */
     }
 
     return new_ptr;
