@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='7.3.0'
+export BAZ_VERSION='7.4.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -28,7 +28,7 @@ export BAZ_BASH_LOADER_TEMPLATE="$BAZP_INITDIR/loader.sht"
 export BAZ_LOADER_DIR="$BAZP_INITDIR/loader"
 export BAZ_LOADER_TEMPLATE="$BAZ_LOADER_DIR/loader.sht"
 export BAZ_LOADER_PROG="$BAZ_LOADER_DIR/loader.c"
-export BAZ_LOADER_PROG_BIN="${BAZ_LOADER_PROG_BIN:-"$BAZ_DIR/load"}"
+export BAZ_LOADER_PROG_BIN="$BAZ_DIR/load"
 
 export BAZ_LOGGING_HEADER='[BAZ_LOAD]'
 
@@ -629,15 +629,11 @@ baz_setup() {
 
         baz_log "compiling loader $(baz_unexpand_path "$BAZ_LOADER_PROG_BIN") ... " printf
 
-        if [ "$DESTDIR" ]; then
-            mkdir -p -- "$DESTDIR" || baz_eecho 'failed to make destdir'
-        fi
-
         # shellcheck disable=SC2086
-        if "$CC" $CFLAGS "$BAZ_LOADER_PROG" $([ "$BAZ_LOGGING_ENABLED" ] && echo "-D LOGGING=\"\\\"$BAZ_LOGGING_HEADER\\\"\"") -o "$DESTDIR$BAZ_LOADER_PROG_BIN"; then
+        if "$CC" $CFLAGS "$BAZ_LOADER_PROG" $([ "$BAZ_LOGGING_ENABLED" ] && echo "-D LOGGING=\"\\\"$BAZ_LOGGING_HEADER\\\"\"") -o "$BAZ_LOADER_PROG_BIN"; then
             if [ "$STRIP" ] && do_error=no baz_use "$STRIP"; then
                 # shellcheck disable=SC2086
-                "$STRIP" $STRIPFLAGS "$DESTDIR$BAZ_LOADER_PROG_BIN" || baz_eecho 'stripping failed'
+                "$STRIP" $STRIPFLAGS "$BAZ_LOADER_PROG_BIN" || baz_eecho 'stripping failed'
             fi
 
             baz_eecho 'done'

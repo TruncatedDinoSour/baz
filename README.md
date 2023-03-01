@@ -136,18 +136,6 @@ export STRIP='llvm-strip'
 export STRIPFLAGS='--remove-section=.note --strip-all'
 ```
 
--   set the `load` binary path
-
-```bash
-export BAZ_LOADER_PROG_BIN='/some/load'
-```
-
--   set the `load` binary path destination
-
-```bash
-export DESTDIR='/some/dir/'
-```
-
 -   install the script anywhere, or even run it standalone
     -   running standalone means just running it
     -   installing could be done in for example `/usr/local/bin`:
