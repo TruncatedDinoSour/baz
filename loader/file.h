@@ -17,8 +17,8 @@ static char *read_line(const char *);
 static void free_file(File *f) { free(f->content); }
 
 static void alloc_file(const char *path, File *f) {
-    static volatile int fd;
-    static volatile size_t content_size;
+    static int fd;
+    static size_t content_size;
 
     if ((fd = open(path, O_RDONLY)) == -1) {
         f->content_size = 0;
@@ -46,9 +46,9 @@ static void alloc_file(const char *path, File *f) {
 }
 
 static char *read_line(const char *path) {
-    static volatile int fd;
-    static volatile ssize_t sz = 0, rb;
-    char *buf                  = NULL;
+    static int fd;
+    static ssize_t sz = 0, rb;
+    char *buf         = NULL;
 
     if ((fd = open(path, O_RDONLY)) == -1)
         return NULL;

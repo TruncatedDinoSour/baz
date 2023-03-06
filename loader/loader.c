@@ -39,7 +39,7 @@ static unsigned char debug_load;
 typedef void (*stage_t)(char *);
 
 static void load_envs(char *path) {
-    static volatile size_t envs_base;
+    static size_t envs_base;
 
     struct dirent *ep;
     DIR *dp;
@@ -65,8 +65,6 @@ static void load_envs(char *path) {
         if (f.content_size == 0)
             continue;
 
-        log(path);
-
         if (f.content[f.content_size - 1] == '\n')
             f.content[f.content_size - 1] = '\0';
 
@@ -83,7 +81,7 @@ static void load_envs(char *path) {
 }
 
 static void load_cmds(char *path) {
-    static volatile size_t cmds_base;
+    static size_t cmds_base;
 
     struct dirent *ep;
     DIR *dp;
@@ -106,7 +104,7 @@ static void load_cmds(char *path) {
 }
 
 static void load_functions(char *path) {
-    static volatile size_t funs_base;
+    static size_t funs_base;
 
     struct dirent *ep;
     DIR *dp;
@@ -129,7 +127,6 @@ static void load_functions(char *path) {
         if (f.content_size == 0)
             continue;
 
-        log(path);
         printf("%s(){\n%s\n}\n", ep->d_name, f.content);
 
         path[funs_base] = '\0';
@@ -140,7 +137,7 @@ static void load_functions(char *path) {
 }
 
 static void load_aliases(char *path) {
-    static volatile size_t alias_base;
+    static size_t alias_base;
 
     struct dirent *ep;
     DIR *dp;
@@ -162,8 +159,6 @@ static void load_aliases(char *path) {
     while ((ep = readdir_visible(dp))) {
         strcat(path, ep->d_name);
 
-        log(path);
-
         alloc_file(path, pf);
         escape_quotes(ps, f.content, f.content_size);
 
@@ -178,7 +173,7 @@ static void load_aliases(char *path) {
 }
 
 static void load_runners(char *path) {
-    static volatile size_t runs_base;
+    static size_t runs_base;
 
     struct dirent *ep;
     DIR *dp;
@@ -201,7 +196,6 @@ static void load_runners(char *path) {
         if (f.content_size == 0)
             continue;
 
-        log(path);
         puts(f.content);
 
         path[runs_base] = '\0';
@@ -212,13 +206,11 @@ static void load_runners(char *path) {
 }
 
 static void load_completions(char *path) {
-    static volatile size_t comps_base;
+    static size_t comps_base;
 
     struct dirent *ep;
     DIR *dp;
-    char *basename;
-
-    char *line;
+    char *basename, *line;
 
     log("loading completions");
 
@@ -230,8 +222,6 @@ static void load_completions(char *path) {
 
     while ((ep = readdir_visible(dp))) {
         strcat(path, ep->d_name);
-
-        log(path);
 
         if ((line = read_line(path)) != NULL) {
             printf("complete -F %s bashdefault -o default %s\n", line,
@@ -248,7 +238,7 @@ static void load_completions(char *path) {
 }
 
 static void load_keybinds(char *path) {
-    static volatile size_t keys_base;
+    static size_t keys_base;
 
     struct dirent *ep;
     DIR *dp;
@@ -285,8 +275,6 @@ static void load_keybinds(char *path) {
     while ((ep = readdir_visible(dp))) {
         strcat(path, ep->d_name);
 
-        log(path);
-
         printf("bind -m %s -f %s\n", (basename = get_base(path)), path);
         free(basename);
 
@@ -304,20 +292,18 @@ static const stage_t stages[] = {
 static const size_t stages_sz = sizeof(stages) / sizeof(stages[0]);
 
 int main(int argc, char **argv) {
-    static volatile size_t path_base;
-    static volatile unsigned char stage;
-    char *path;
+    static size_t path_base;
+    static unsigned char stage;
+    static char *path;
 
     if (argc < 2)
         return 1;
 
-    path =
 #ifdef ALLOW_ALLOCA
-        alloca(PATH_MAX)
+    path = alloca(PATH_MAX);
 #else
-        malloc(PATH_MAX)
+    path = malloc(PATH_MAX);
 #endif
-        ;
 
 #ifdef LOGGING
     if ((debug_load = getenv(DEBUG_LOAD) != NULL))
@@ -328,10 +314,7 @@ int main(int argc, char **argv) {
 
     while (*++argv) {
         log("");
-
-        path_base = strlen(*argv);
-        strcpy(path, *argv);
-
+        memmove(path, *argv, (path_base = strlen(*argv)));
         log(path);
 
         for (stage = 0; stage < stages_sz; ++stage) {

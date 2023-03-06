@@ -1,7 +1,8 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
-static const volatile char newline = '\n';
+static const char newline = '\n';
 #define DIR_SEP            "/"
+#define CDIR_SEP           '/'
 #define ENVS_DIR           "environments"
 #define CMDS_DIR           "commands"
 #define FUNCS_DIR          "functions"

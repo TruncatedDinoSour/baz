@@ -10,10 +10,11 @@ static struct dirent *readdir_visible(DIR *);
 
 #ifdef PATH_IMPL
 static char *get_base(const char *path) {
-    char *last_slash = strrchr(path, '/');
-    char *buf        = malloc(strlen(last_slash));
+    const char *last_slash     = strrchr(path, CDIR_SEP) + 1;
+    const size_t last_slash_sz = strlen(last_slash);
+    char *buf                  = malloc(last_slash_sz);
 
-    memmove(buf, last_slash + 1, strlen(last_slash));
+    memmove(buf, last_slash, last_slash_sz);
     return buf;
 }
 
