@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='7.4.0'
+export BAZ_VERSION='7.5.0'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -177,7 +177,7 @@ baz_update_plugin_local() {
 
     if [ -n "$(diff -rq --color=never -x .git -x disabled -x method -x origin "$origin" . 2>&1 || :)" ]; then
         bazp_reset_env
-        . "$local_bazp"
+        . "${local_bazp:?}"
         bazp_check_env
         new_ver="$BAZP_VER"
 

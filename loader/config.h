@@ -14,7 +14,7 @@ static const volatile char newline = '\n';
 #define DEBUG_LOAD         "BAZ_DEBUG_LOAD"
 #define LOGGING_FN         ".1"
 #define LOGGING_FN_DEF     LOGGING_FN "(){ echo \"" LOGGING " $1\">&2;}"
-#define STR_GROWTH         32
+#define STR_GROWTH         64
 #define LINE_GROWTH        64
-/* #define MEM_CUSTOM      use custom malloc(), free() and realloc() */
+/* #define ALLOW_ALLOCA allow usage of alloca() if appropriate */
 #endif /* _CONFIG_H */

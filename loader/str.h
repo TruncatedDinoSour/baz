@@ -15,11 +15,11 @@ static void str_free(Str *);
 #ifdef STR_IMPL
 static void str_append(Str *str, const char chr) {
     if (str->idx == str->len)
-        str->string = mem_realloc(str->string, (str->len += STR_GROWTH));
+        str->string = realloc(str->string, (str->len += STR_GROWTH));
 
     str->string[str->idx++] = chr;
 }
 
-static void str_free(Str *str) { mem_free(str->string); }
+static void str_free(Str *str) { free(str->string); }
 #endif /* STR_IMPL */
 #endif /* _STR_H */

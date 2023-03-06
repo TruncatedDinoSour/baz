@@ -1,11 +1,9 @@
 #include "config.h"
 
-#define MEM_NO_STDDEF
 #define FILE_NO_STDDEF
 #define STR_NO_STDDEF
 #define PATH_NO_LIBS
 
-#define MEM_IMPL
 #define FILE_IMPL
 #define PATH_IMPL
 #define STR_IMPL
@@ -20,11 +18,10 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#ifdef MEM_CUSTOM
-#include <sys/mman.h>
+#ifdef ALLOW_ALLOCA
+#include <alloca.h>
 #endif
 
-#include "mem.h"
 #include "file.h"
 #include "macros.h"
 #include "path.h"
@@ -42,7 +39,7 @@ static unsigned char debug_load;
 typedef void (*stage_t)(char *);
 
 static void load_envs(char *path) {
-    size_t envs_base;
+    static volatile size_t envs_base;
 
     struct dirent *ep;
     DIR *dp;
@@ -86,7 +83,7 @@ static void load_envs(char *path) {
 }
 
 static void load_cmds(char *path) {
-    size_t cmds_base;
+    static volatile size_t cmds_base;
 
     struct dirent *ep;
     DIR *dp;
@@ -109,7 +106,7 @@ static void load_cmds(char *path) {
 }
 
 static void load_functions(char *path) {
-    size_t funs_base;
+    static volatile size_t funs_base;
 
     struct dirent *ep;
     DIR *dp;
@@ -143,7 +140,7 @@ static void load_functions(char *path) {
 }
 
 static void load_aliases(char *path) {
-    size_t alias_base;
+    static volatile size_t alias_base;
 
     struct dirent *ep;
     DIR *dp;
@@ -181,7 +178,7 @@ static void load_aliases(char *path) {
 }
 
 static void load_runners(char *path) {
-    size_t runs_base;
+    static volatile size_t runs_base;
 
     struct dirent *ep;
     DIR *dp;
@@ -215,7 +212,7 @@ static void load_runners(char *path) {
 }
 
 static void load_completions(char *path) {
-    size_t comps_base;
+    static volatile size_t comps_base;
 
     struct dirent *ep;
     DIR *dp;
@@ -240,8 +237,8 @@ static void load_completions(char *path) {
             printf("complete -F %s bashdefault -o default %s\n", line,
                    (basename = get_base(path)));
 
-            mem_free(basename);
-            mem_free(line);
+            free(basename);
+            free(line);
         }
 
         path[comps_base] = '\0';
@@ -251,7 +248,7 @@ static void load_completions(char *path) {
 }
 
 static void load_keybinds(char *path) {
-    size_t keys_base;
+    static volatile size_t keys_base;
 
     struct dirent *ep;
     DIR *dp;
@@ -291,7 +288,7 @@ static void load_keybinds(char *path) {
         log(path);
 
         printf("bind -m %s -f %s\n", (basename = get_base(path)), path);
-        mem_free(basename);
+        free(basename);
 
         path[keys_base] = '\0';
     }
@@ -307,14 +304,20 @@ static const stage_t stages[] = {
 static const size_t stages_sz = sizeof(stages) / sizeof(stages[0]);
 
 int main(int argc, char **argv) {
-    size_t path_base;
+    static volatile size_t path_base;
+    static volatile unsigned char stage;
     char *path;
-    unsigned char stage;
 
     if (argc < 2)
         return 1;
 
-    path = mem_alloc(PATH_MAX);
+    path =
+#ifdef ALLOW_ALLOCA
+        alloca(PATH_MAX)
+#else
+        malloc(PATH_MAX)
+#endif
+        ;
 
 #ifdef LOGGING
     if ((debug_load = getenv(DEBUG_LOAD) != NULL))
@@ -336,8 +339,6 @@ int main(int argc, char **argv) {
             path[path_base] = '\0';
         }
     }
-
-    mem_free(path);
 
     return 0;
 }

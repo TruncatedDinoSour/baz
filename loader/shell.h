@@ -9,7 +9,7 @@ static void escape_quotes(Str *, const char *, size_t);
 #ifdef SHELL_IMPL
 static void escape_quotes(Str *str, const char *shell, size_t init_size) {
     if (init_size > str->len) {
-        str->string = mem_realloc(str->string, (init_size += STR_GROWTH));
+        str->string = realloc(str->string, (init_size += STR_GROWTH));
         str->len    = init_size;
     }
 
