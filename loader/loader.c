@@ -340,5 +340,9 @@ int main(int argc, char **argv) {
         }
     }
 
+#ifndef ALLOW_ALLOCA
+    free(path);
+#endif
+
     return 0;
 }
