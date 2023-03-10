@@ -101,6 +101,8 @@ static void load_cmds(char *path) {
         chmod(path, 0700);
         path[cmds_base] = '\0';
     }
+
+    closedir(dp);
 }
 
 static void load_functions(char *path) {
