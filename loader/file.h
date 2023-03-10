@@ -1,6 +1,6 @@
 #ifndef _FILE_H
 #define _FILE_H
-#ifndef FILE_STDDEF
+#ifndef FILE_NO_STDDEF
 #include <stddef.h>
 #endif
 

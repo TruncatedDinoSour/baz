@@ -1,23 +1,13 @@
 #ifndef _PATH_H
 #define _PATH_H
-#ifndef PATH_NO_LIBS
+#ifndef PATH_NO_DIRENT
 #include <dirent.h>
 #endif
 
-static char *get_base(const char *);
 static unsigned char path_exists(const char *);
 static struct dirent *readdir_visible(DIR *);
 
 #ifdef PATH_IMPL
-static char *get_base(const char *path) {
-    const char *last_slash     = strrchr(path, CDIR_SEP) + 1;
-    const size_t last_slash_sz = strlen(last_slash);
-    char *buf                  = malloc(last_slash_sz);
-
-    memmove(buf, last_slash, last_slash_sz);
-    return buf;
-}
-
 static unsigned char path_exists(const char *path) {
     return access(path, F_OK) == 0;
 }

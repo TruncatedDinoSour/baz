@@ -17,5 +17,4 @@ static const char newline = '\n';
 #define LOGGING_FN_DEF     LOGGING_FN "(){ echo \"" LOGGING " $1\">&2;}"
 #define STR_GROWTH         64
 #define LINE_GROWTH        64
-/* #define ALLOW_ALLOCA allow usage of alloca() if appropriate */
 #endif /* _CONFIG_H */

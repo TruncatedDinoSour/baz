@@ -14,4 +14,11 @@
     sname var     = {0}; \
     sname *p##var = &var
 #define pnl() putchar(newline)
+#if defined(BSD) || defined(__bsd__) || defined(__BSD__) ||             \
+    defined(__FreeBSD__) || defined(__OpenBSD__) || defined(FreeBSD) || \
+    defined(OpenBSD)
+#define pathcat(what) strlcat(path, what, PATH_MAX)
+#else
+#define pathcat(what) strncat(path, what, PATH_MAX)
+#endif
 #endif /* _MACROS_H */
