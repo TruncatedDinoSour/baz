@@ -15,3 +15,5 @@ use `config.h` to configure it
 ```sh
 $ clang loader/loader.c -std=c89 -s -Wall -Wextra -Wpedantic -pedantic -Werror -Wshadow -Ofast -flto -o load
 ```
+
+want very optimised flags ? see <https://raw.githubusercontent.com/TruncatedDinosour/dotfiles-cleaned/gentoo/dotfiles/config/baz/genoo-cflags.env>

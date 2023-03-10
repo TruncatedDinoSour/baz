@@ -94,7 +94,7 @@ static void load_cmds(char *path) {
     if ((dp = opendir(path)) == NULL)
         return;
 
-    printf("export PATH=\"%s:$PATH\"\n", path);
+    printf("PATH=\"%s:$PATH\"\n", path);
 
     while ((ep = readdir_visible(dp))) {
         strcat(path, ep->d_name);
@@ -322,6 +322,8 @@ int main(int argc, char **argv) {
             path[path_base] = '\0';
         }
     }
+
+    puts("export PATH"); /* finish off commands, export path */
 
 #ifndef ALLOW_ALLOCA
     free(path);
