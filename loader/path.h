@@ -15,9 +15,8 @@ static unsigned char path_exists(const char *path) {
 static struct dirent *readdir_visible(DIR *dp) {
     struct dirent *ep;
 
-    do {
-        ep = readdir(dp);
-    } while (ep && ep->d_name[0] == '.');
+    while ((ep = readdir(dp)) && *ep->d_name == '.')
+        ;
 
     return ep;
 }

@@ -2,12 +2,10 @@
 
 #define FILE_NO_STDDEF
 #define PATH_NO_DIRENT
-#define STR_NO_STDDEF
-#define SHELL_NO_STR
+#define SHELL_NO_FILE
 
 #define FILE_IMPL
 #define PATH_IMPL
-#define STR_IMPL
 #define SHELL_IMPL
 
 #include <stdio.h>
@@ -20,10 +18,9 @@
 
 #include <sys/stat.h>
 
-#include "file.h"
 #include "macros.h"
+#include "file.h"
 #include "path.h"
-#include "str.h"
 #include "shell.h"
 
 #ifdef LOGGING
@@ -39,15 +36,9 @@ typedef struct {
     const char *path;
 } stage_t;
 
-typedef struct {
-    void (*stage)(char *, const size_t);
-    const char *path;
-} lstage_t;
-
 static void
 load_envs(char *path, const size_t base, DIR *dp, struct dirent *ep) {
     mks(File, f);
-    mks(Str, s);
 
     log("loading environment variables");
 
@@ -55,24 +46,16 @@ load_envs(char *path, const size_t base, DIR *dp, struct dirent *ep) {
 
     while ((ep = readdir_visible(dp))) {
         pathcat(ep->d_name);
-
         alloc_file(path, pf);
 
-        if (f.content_size == 0)
-            continue;
+        escape_quotes(&f);
 
-        if (f.content[f.content_size - 1] == '\n')
-            f.content[f.content_size - 1] = '\0';
-
-        escape_quotes(ps, f.content, f.content_size);
-
-        printf(" %s=\"%s\"", ep->d_name, s.string);
+        printf(" %s=\"%s\"", ep->d_name, f.content);
         path[base] = '\0';
     }
 
     pnl();
     free_file(pf);
-    str_free(ps);
 }
 
 static void
@@ -96,11 +79,7 @@ load_functions(char *path, const size_t base, DIR *dp, struct dirent *ep) {
 
     while ((ep = readdir_visible(dp))) {
         pathcat(ep->d_name);
-
         alloc_file(path, pf);
-
-        if (f.content_size == 0)
-            continue;
 
         printf("%s(){\n%s\n}\n", ep->d_name, f.content);
 
@@ -112,7 +91,6 @@ load_functions(char *path, const size_t base, DIR *dp, struct dirent *ep) {
 
 static void
 load_aliases(char *path, const size_t base, DIR *dp, struct dirent *ep) {
-    mks(Str, s);
     mks(File, f);
 
     log("loading aliases");
@@ -123,15 +101,14 @@ load_aliases(char *path, const size_t base, DIR *dp, struct dirent *ep) {
         pathcat(ep->d_name);
 
         alloc_file(path, pf);
-        escape_quotes(ps, f.content, f.content_size);
+        escape_quotes(&f);
 
-        printf(" %s=\"%s\"", ep->d_name, s.string);
+        printf(" %s=\"%s\"", ep->d_name, f.content);
         path[base] = '\0';
     }
 
     pnl();
     free_file(pf);
-    str_free(ps);
 }
 
 static void
@@ -142,11 +119,7 @@ load_runners(char *path, const size_t base, DIR *dp, struct dirent *ep) {
 
     while ((ep = readdir_visible(dp))) {
         pathcat(ep->d_name);
-
         alloc_file(path, pf);
-
-        if (f.content_size == 0)
-            continue;
 
         puts(f.content);
         path[base] = '\0';
@@ -220,8 +193,6 @@ int main(int argc, char **argv) {
     };
     static const size_t stages_sz = sizeof(stages) / sizeof(*stages);
 
-    static const lstage_t last_stage = {load_keybinds, DP(KEYS_DIR)};
-
     if (argc < 2)
         return 1;
 
@@ -251,10 +222,14 @@ int main(int argc, char **argv) {
             closedir(dp);
         }
 
-        pathcat(last_stage.path);
+        /* last stage -- keybinds
+         * to be more efficient bc keybinds doesnt require
+         * the keybinds dir to be open */
+
+        pathcat(DP(KEYS_DIR));
 
         if (path_exists(path))
-            last_stage.stage(path, strlen(path));
+            load_keybinds(path, strlen(path));
     }
 
     puts("export PATH"); /* finish off commands, export path */

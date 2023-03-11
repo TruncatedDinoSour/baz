@@ -20,5 +20,5 @@
 #define pathcat(what) strlcat(path, what, PATH_MAX)
 #else
 #define pathcat(what) strncat(path, what, PATH_MAX)
-#endif
+#endif /* BSD */
 #endif /* _MACROS_H */

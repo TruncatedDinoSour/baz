@@ -20,10 +20,8 @@ static void alloc_file(const char *path, File *f) {
     static int fd;
     static size_t content_size;
 
-    if ((fd = open(path, O_RDONLY)) == -1) {
-        f->content_size = 0;
+    if ((fd = open(path, O_RDONLY)) == -1)
         return;
-    }
 
     content_size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
@@ -36,7 +34,6 @@ static void alloc_file(const char *path, File *f) {
     f->content_size = content_size;
 
     if (read(fd, f->content, content_size) == -1) {
-        f->content_size = 0;
         close(fd);
         return;
     }
