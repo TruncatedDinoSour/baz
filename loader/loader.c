@@ -31,6 +31,8 @@ static unsigned char debug_load;
 #define PATH_MAX 4096
 #endif
 
+static File f = {0}, *pf = &f;
+
 typedef struct {
     void (*stage)(char *, const size_t, DIR *, struct dirent *);
     const char *path;
@@ -38,24 +40,21 @@ typedef struct {
 
 static void
 load_envs(char *path, const size_t base, DIR *dp, struct dirent *ep) {
-    mks(File, f);
-
     log("loading environment variables");
 
     nputs("export");
 
     while ((ep = readdir_visible(dp))) {
         pathcat(ep->d_name);
-        alloc_file(path, pf);
 
-        escape_quotes(&f);
+        alloc_file(path, pf);
+        escape_quotes(pf);
 
         printf(" %s=\"%s\"", ep->d_name, f.content);
         path[base] = '\0';
     }
 
     pnl();
-    free_file(pf);
 }
 
 static void
@@ -73,8 +72,6 @@ load_cmds(char *path, const size_t base, DIR *dp, struct dirent *ep) {
 
 static void
 load_functions(char *path, const size_t base, DIR *dp, struct dirent *ep) {
-    mks(File, f);
-
     log("loading functions");
 
     while ((ep = readdir_visible(dp))) {
@@ -85,14 +82,10 @@ load_functions(char *path, const size_t base, DIR *dp, struct dirent *ep) {
 
         path[base] = '\0';
     }
-
-    free_file(pf);
 }
 
 static void
 load_aliases(char *path, const size_t base, DIR *dp, struct dirent *ep) {
-    mks(File, f);
-
     log("loading aliases");
 
     nputs("alias");
@@ -108,13 +101,10 @@ load_aliases(char *path, const size_t base, DIR *dp, struct dirent *ep) {
     }
 
     pnl();
-    free_file(pf);
 }
 
 static void
 load_runners(char *path, const size_t base, DIR *dp, struct dirent *ep) {
-    mks(File, f);
-
     log("running runners");
 
     while ((ep = readdir_visible(dp))) {
@@ -124,8 +114,6 @@ load_runners(char *path, const size_t base, DIR *dp, struct dirent *ep) {
         puts(f.content);
         path[base] = '\0';
     }
-
-    free_file(pf);
 }
 
 static void
@@ -233,6 +221,8 @@ int main(int argc, char **argv) {
     }
 
     puts("export PATH"); /* finish off commands, export path */
+
+    free_file(pf);
 
     return 0;
 }

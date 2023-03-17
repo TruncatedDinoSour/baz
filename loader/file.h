@@ -62,6 +62,7 @@ static char *read_line(const char *path) {
 
     buf[rb - (buf[rb - 1] == '\n')] = '\0';
     close(fd);
+
     return buf;
 }
 #endif /* FILE_IMPL */

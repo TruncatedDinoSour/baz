@@ -9,9 +9,8 @@ static void escape_quotes(File *);
 #ifdef SHELL_IMPL
 static void escape_quotes(File *file) {
     char *new_content, *old_ptr, *new_ptr;
-    file->content_size = file->content_size * 2;
 
-    new_content = malloc(file->content_size);
+    new_content = malloc((file->content_size *= 2));
     old_ptr = file->content, new_ptr = new_content;
 
     while (*old_ptr) {

@@ -4,7 +4,7 @@ export BAZ_LOADER_VERSION='#{BAZ_VER}'
 
 baz_load_plugin_low() {
     . "$1/baz.env"
-    eval "$(:BAZ_LOADER_CMD "$1/$BAZP_SRC")"
+    eval "$(':BAZ_LOADER_CMD' "$1/$BAZP_SRC")"
 }
 
 baz_loader() {
@@ -16,7 +16,7 @@ baz_loader() {
         [ -f "$p/baz.env" ] && [ ! -e "$p/disabled" ] && . "$p/baz.env" && d+=("$p/$BAZP_SRC")
     done
 
-    [ "$BAZP_SRC" ] && eval "$(:BAZ_LOADER_CMD "${d[@]}")"
+    [ "$BAZP_SRC" ] && eval "$(':BAZ_LOADER_CMD' "${d[@]}")"
 
     #{BAZ_NOP}
 }
