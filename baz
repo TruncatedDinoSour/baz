@@ -2,7 +2,7 @@
 
 [ "$BAZ_DEBUG" ] && set -x
 
-export BAZ_VERSION='7.5.4'
+export BAZ_VERSION='7.5.5'
 export BAZ_DIR="$HOME/.local/share/baz"
 export BAZ_CONFDIR="$HOME/.config/baz"
 export BAZ_CONF="$BAZ_CONFDIR/config.env"
@@ -848,13 +848,7 @@ main() {
 
     if [ "$BAZ_NORLWRAP" != true ] && command -v rlwrap >/dev/null; then
         baz_use trap rlwrap return
-
-        _rlhist="$TMPDIR/.baz.$RANDOM"
-
-        : >"$_rlhist"
-        trap 'rm -f -- "$_rlhist"' 0 1 15
-
-        _BAZ_NO_PRE=true BAZ_NORLWRAP=true exec rlwrap -g '.*' -H "$_rlhist" -- "$0" "$@"
+        _BAZ_NO_PRE=true BAZ_NORLWRAP=true exec rlwrap -n -H /dev/null -- "$0" "$@"
     fi
 
     set -e
