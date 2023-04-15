@@ -14,6 +14,14 @@
 
 -   [@DannyBen](https://github.com/DannyBen) -- for creating an awesome tool for completion: https://github.com/DannyBen/completely
 
+# packages
+
+-   linux
+    -   gentoo
+        -   <https://ari-web.xyz/gentooatom/app-shells/baz>
+    -   alpine
+        -   <https://github.com/usernameeReal/alpine-pkgs/tree/main/baz>
+
 # dependencies
 
 -   coreutils
