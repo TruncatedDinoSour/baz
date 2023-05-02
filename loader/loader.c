@@ -170,7 +170,7 @@ int main(int argc, const char **argv) {
     static unsigned char stage_num;
     static stage_t stage;
 
-    static char path[PATH_MAX];
+    static char path[PATH_MAX + 1];
     static DIR *dp;
     static struct dirent *ep;
 
