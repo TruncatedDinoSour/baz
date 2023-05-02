@@ -28,7 +28,7 @@ static void alloc_file(const char *path, File *f) {
 
     if (content_size > f->content_size) {
         free(f->content);
-        f->content = malloc(content_size + 2);
+        f->content = malloc(content_size + 1);
     }
 
     f->content_size = content_size;

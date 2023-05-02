@@ -8,10 +8,17 @@ static void escape_quotes(File *);
 
 #ifdef SHELL_IMPL
 static void escape_quotes(File *file) {
+    size_t quotes = 0;
     char *new_content, *old_ptr, *new_ptr;
 
-    new_content = malloc((file->content_size *= 2));
-    old_ptr = file->content, new_ptr = new_content;
+    old_ptr     = file->content;
+    new_content = file->content;
+
+    while (*new_content)
+        quotes += (*new_content++ == '"');
+
+    new_content = malloc((file->content_size += quotes));
+    new_ptr     = new_content;
 
     while (*old_ptr) {
         if (*old_ptr == '"')

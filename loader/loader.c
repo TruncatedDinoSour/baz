@@ -165,7 +165,7 @@ static void load_keybinds(char *path, const size_t base) {
     closedir(dp);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, const char **argv) {
     static size_t path_base;
     static unsigned char stage_num;
     static stage_t stage;
