@@ -1,21 +1,27 @@
 #ifndef _SHELL_H
 #define _SHELL_H
-#ifndef SHELL_NO_FILE
 #include "file.h"
-#endif
 
-static void escape_quotes(File *);
+static void escape_quotes(File *const);
 
 #ifdef SHELL_IMPL
-static void escape_quotes(File *file) {
-    size_t quotes = 0;
-    char *new_content, *old_ptr, *new_ptr;
+static void escape_quotes(File *const file) {
+    static size_t quotes;
+    static char *new_content, *old_ptr, *new_ptr;
+
+    quotes = 0;
 
     old_ptr     = file->content;
     new_content = file->content;
 
     while (*new_content)
         quotes += (*new_content++ == '"');
+
+    if (!quotes) {
+        file->content[file->content_size -
+                      (file->content[file->content_size - 1] == '\n')] = '\0';
+        return;
+    }
 
     new_content = malloc((file->content_size += quotes));
     new_ptr     = new_content;
@@ -29,7 +35,7 @@ static void escape_quotes(File *file) {
 
     *(new_ptr - (*(new_ptr - 1) == '\n')) = '\0';
 
-    free(file->content);
+    free_file(file);
     file->content = new_content;
 }
 #endif /* SHELL_IMPL */

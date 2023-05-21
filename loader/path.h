@@ -1,19 +1,18 @@
 #ifndef _PATH_H
 #define _PATH_H
-#ifndef PATH_NO_DIRENT
 #include <dirent.h>
-#endif
+#include <unistd.h>
 
-static unsigned char path_exists(const char *);
-static struct dirent *readdir_visible(DIR *);
+static unsigned char path_exists(const char *const);
+static struct dirent *readdir_visible(DIR *const);
 
 #ifdef PATH_IMPL
-static unsigned char path_exists(const char *path) {
+static unsigned char path_exists(const char *const path) {
     return access(path, F_OK) == 0;
 }
 
-static struct dirent *readdir_visible(DIR *dp) {
-    struct dirent *ep;
+static struct dirent *readdir_visible(DIR *const dp) {
+    static struct dirent *ep;
 
     while ((ep = readdir(dp)) && *ep->d_name == '.')
         ;

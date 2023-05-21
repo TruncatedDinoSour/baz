@@ -1,9 +1,5 @@
 #include "config.h"
 
-#define FILE_NO_STDDEF
-#define PATH_NO_DIRENT
-#define SHELL_NO_FILE
-
 #define FILE_IMPL
 #define PATH_IMPL
 #define SHELL_IMPL
@@ -33,13 +29,18 @@ static unsigned char debug_load;
 
 static File f = {0}, *pf = &f;
 
+static char path[PATH_MAX + 1];
+static size_t base;
+
+static DIR *dp;
+static struct dirent *ep;
+
 typedef struct {
-    void (*stage)(char *, const size_t, DIR *, struct dirent *);
+    void (*stage)(void);
     const char *path;
 } stage_t;
 
-static void
-load_envs(char *path, const size_t base, DIR *dp, struct dirent *ep) {
+LOAD_FN(envs) {
     log("loading environment variables");
 
     nputs("export");
@@ -57,8 +58,7 @@ load_envs(char *path, const size_t base, DIR *dp, struct dirent *ep) {
     pnl();
 }
 
-static void
-load_cmds(char *path, const size_t base, DIR *dp, struct dirent *ep) {
+LOAD_FN(cmds) {
     log("adding commands");
 
     printf("PATH=\"%s:$PATH\"\n", path);
@@ -70,8 +70,7 @@ load_cmds(char *path, const size_t base, DIR *dp, struct dirent *ep) {
     }
 }
 
-static void
-load_functions(char *path, const size_t base, DIR *dp, struct dirent *ep) {
+LOAD_FN(functions) {
     log("loading functions");
 
     while ((ep = readdir_visible(dp))) {
@@ -84,8 +83,7 @@ load_functions(char *path, const size_t base, DIR *dp, struct dirent *ep) {
     }
 }
 
-static void
-load_aliases(char *path, const size_t base, DIR *dp, struct dirent *ep) {
+LOAD_FN(aliases) {
     log("loading aliases");
 
     nputs("alias");
@@ -103,8 +101,7 @@ load_aliases(char *path, const size_t base, DIR *dp, struct dirent *ep) {
     pnl();
 }
 
-static void
-load_runners(char *path, const size_t base, DIR *dp, struct dirent *ep) {
+LOAD_FN(runners) {
     log("running runners");
 
     while ((ep = readdir_visible(dp))) {
@@ -116,9 +113,8 @@ load_runners(char *path, const size_t base, DIR *dp, struct dirent *ep) {
     }
 }
 
-static void
-load_completions(char *path, const size_t base, DIR *dp, struct dirent *ep) {
-    char *line;
+LOAD_FN(completions) {
+    static char *line;
 
     log("loading completions");
 
@@ -135,9 +131,9 @@ load_completions(char *path, const size_t base, DIR *dp, struct dirent *ep) {
     }
 }
 
-static void load_keybinds(char *path, const size_t base) {
-    struct dirent *ep;
-    DIR *dp;
+LOAD_FN(keybinds) {
+    static struct dirent *epk;
+    static DIR *dpk;
 
     log("binding keybinds");
 
@@ -151,28 +147,25 @@ static void load_keybinds(char *path, const size_t base) {
     path[base] = '\0';
     pathcat(DP(KEYS_CTX_DIR));
 
-    if ((!path_exists(path)) || ((dp = opendir(path)) == NULL))
+    if ((!path_exists(path)) || ((dpk = opendir(path)) == NULL))
         return;
 
     log("loading contexed keybinds");
 
-    while ((ep = readdir_visible(dp))) {
-        pathcat(ep->d_name);
-        printf("bind -m %s -f %s\n", ep->d_name, path);
+    while ((epk = readdir_visible(dpk))) {
+        pathcat(epk->d_name);
+        printf("bind -m %s -f %s\n", epk->d_name, path);
         path[base] = '\0';
     }
 
-    closedir(dp);
+    closedir(dpk);
 }
 
-int main(int argc, const char **argv) {
+int main(int argc, const char *const *argv) {
     static size_t path_base;
+
     static unsigned char stage_num;
     static stage_t stage;
-
-    static char path[PATH_MAX + 1];
-    static DIR *dp;
-    static struct dirent *ep;
 
     static const stage_t stages[] = {
         {load_envs, DP(ENVS_DIR)},       {load_cmds, DP(CMDS_DIR)},
@@ -204,7 +197,8 @@ int main(int argc, const char **argv) {
                 continue;
             }
 
-            stage.stage(path, strlen(path), dp, ep);
+            base = strlen(path);
+            stage.stage();
 
             path[path_base] = '\0';
             closedir(dp);
@@ -215,9 +209,10 @@ int main(int argc, const char **argv) {
          * the keybinds dir to be open */
 
         pathcat(DP(KEYS_DIR));
+        base = strlen(path);
 
         if (path_exists(path))
-            load_keybinds(path, strlen(path));
+            load_keybinds();
     }
 
     puts("export PATH"); /* finish off commands, export path */

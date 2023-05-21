@@ -17,4 +17,5 @@
 #else
 #define pathcat(what) strncat(path, what, PATH_MAX)
 #endif /* BSD */
+#define LOAD_FN(what) static void load_##what(void)
 #endif /* _MACROS_H */

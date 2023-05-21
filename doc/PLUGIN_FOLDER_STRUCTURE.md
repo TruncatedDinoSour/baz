@@ -303,3 +303,8 @@ also you an append `-pre` to run before the hook and
 -   Hook (run)
 -   Source (source)
 -   Post (source)
+
+## disabled
+
+disabled plugins will have the `disabled` 0 byte file in the root of them,
+that means they can still be loaded using `baz_load_plugin_low` but wont be loaded automatically

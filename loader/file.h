@@ -1,22 +1,25 @@
 #ifndef _FILE_H
 #define _FILE_H
-#ifndef FILE_NO_STDDEF
+#include "config.h"
+
 #include <stddef.h>
-#endif
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
 
 typedef struct {
     size_t content_size;
     char *content;
 } File;
 
-static void free_file(File *);
-static void alloc_file(const char *, File *);
-static char *read_line(const char *);
+static void free_file(const File *const);
+static void alloc_file(const char *const, File *const);
+static char *read_line(const char *const);
 
 #ifdef FILE_IMPL
-static void free_file(File *f) { free(f->content); }
+static void free_file(const File *const f) { free(f->content); }
 
-static void alloc_file(const char *path, File *f) {
+static void alloc_file(const char *const path, File *const f) {
     static int fd;
     static size_t content_size;
 
@@ -42,10 +45,13 @@ static void alloc_file(const char *path, File *f) {
     close(fd);
 }
 
-static char *read_line(const char *path) {
+static char *read_line(const char *const path) {
     static int fd;
-    static ssize_t sz = 0, rb;
-    char *buf         = NULL;
+    static ssize_t sz, rb;
+    static char *buf;
+
+    sz  = 0;
+    buf = 0;
 
     if ((fd = open(path, O_RDONLY)) == -1)
         return NULL;
